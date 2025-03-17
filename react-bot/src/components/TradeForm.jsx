@@ -17,7 +17,6 @@ export function TradeForm() {
 
   async function buy() {
     setLoading(true);
-
     try {
       const response = await executeSwap(params);
       if (response.error) {
@@ -66,6 +65,7 @@ export function TradeForm() {
     if (validateForm()) {
       buy();
       setError('');
+      setMess(null);
     }
   };
 
@@ -112,13 +112,23 @@ export function TradeForm() {
           </div>
         </div>
 
-        <button className="buy-btn" type="submit" disabled={loading}>
-          {loading ? <ClipLoader size={0} color="#fff" /> : 'Buy'}
+        <button className="buy-btn bttn buybtn" type="submit" disabled={loading}>
+          {loading ? (
+            <span className="text">
+              <ClipLoader size={20} color="#fff" />
+            </span>
+          ) : (
+            <span className="text">Buy</span>
+          )}
         </button>
 
-        {loading ? <span>Executing ...</span> : error && <span>{error}</span>}
+        {loading ? <span className="status">Executing ...</span> : error && <span className="status">{error}</span>}
 
-        {mess ? <a href={mess}>View on Solscan</a> : null}
+        {mess ? (
+          <a href={mess} target="_blank" rel="noreferrer">
+            <span className="text">View on Solscan</span>
+          </a>
+        ) : null}
       </form>
     </>
   );

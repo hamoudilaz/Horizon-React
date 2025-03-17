@@ -1,7 +1,21 @@
 export function Header() {
   return (
-    <header>
-      <h1>React Bot</h1>
-    </header>
+    <>
+      <nav className="navbar">
+        <div className="max">
+          <h1 className="horizon-text">HORIZON</h1>
+        </div>
+      </nav>
+    </>
+  );
+}
+
+export function Button() {
+  return (
+    <>
+      <button className="bttn">
+        <span class="text">Button</span>
+      </button>
+    </>
   );
 }

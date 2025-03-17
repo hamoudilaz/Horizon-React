@@ -9,11 +9,14 @@ const jitoTip = 10000; // 0.00001 SOL
 
 const connection = new Connection(process.env.RPC_URL, 'processed');
 
-const wallet = Keypair.fromSecretKey(bs58.decode(process.env.PRIVATE_KEY));
+const wallet = Keypair.fromSecretKey(bs58.decode(process.env.PRIVATE_KEY_2));
 
 const userPublicKey = wallet.publicKey.toBase58();
 
 console.log('Your PublicKey: ' + userPublicKey);
+
+
+
 
 
 async function getBalance(outputMint) {
@@ -21,7 +24,8 @@ async function getBalance(outputMint) {
         `https://api.jup.ag/tokens/v1/token/${outputMint}`
     );
 
-    const { decimals } = await getDecimal.json();
+    const { decimals = 6 } = await getDecimal.json();
+    console.log("decimalll" + decimals);
 
     const mintAddress = new PublicKey(outputMint);
 
@@ -38,4 +42,4 @@ async function getBalance(outputMint) {
     return { amountToSell, decimals };
 }
 
-export { wallet, jitoTip, getBalance };
+export { wallet, jitoTip, getBalance, userPublicKey };

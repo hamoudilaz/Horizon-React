@@ -1,29 +1,32 @@
+html,
 body {
+  height: 100%;
   margin: 0;
-  padding: 0;
-  font-family: 'Inter', sans-serif;
-  background: #121212;
+  background-color: #0d0c11;
   color: white;
+}
+.main-container {
+  background-color: #0d0c11;
+  height: 100%;
 }
 
 .dashboard {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   align-items: flex-start;
-  background-color: #1e1e1e;
+
   padding: 30px;
   gap: 40px;
 }
 
-form,
-.owned-tokens {
-  margin: auto;
-  background: #222;
+form {
+  max-width: 530px;
+
   padding: 25px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.08);
-  width: 100%;
-  max-width: 400px;
+  box-shadow:
+    0px 0px 5px rgb(69, 0, 149),
+    inset 0px 0px 5px rgb(69, 0, 149);
 }
 
 form h2 {
@@ -44,8 +47,8 @@ form select {
   padding: 12px;
   margin-top: 6px;
   margin-bottom: 15px;
-  background: #181818;
-  border: 1px solid #444;
+  background-color: transparent;
+  border: 1px solid rgb(33, 19, 49);
   color: white;
   border-radius: 6px;
   transition: 0.3s;
@@ -69,12 +72,17 @@ form select:focus {
   flex: 1;
 }
 
-.buy-btn,
+.buy-btn {
+  padding: 20px;
+}
+
+/* .buy-btn,
 .sell-btn,
 .sell-50,
 .sell-100 {
+  -webkit-user-select: none;
+
   width: 100%;
-  background: linear-gradient(135deg, #6a11cb, #2575fc);
   color: rgb(255, 235, 188);
   border: none;
   padding: 12px;
@@ -87,7 +95,7 @@ form select:focus {
 
 .sell-50,
 .sell-100 {
-  flex: 1; /* ✅ Makes both buttons equal width */
+  flex: 1;
   padding: 10px;
   text-align: center;
 }
@@ -105,36 +113,89 @@ form select:focus {
 .sell-btn:active,
 .sell-50:active,
 .sell-100:active {
-  transform: scale(0.95); /* ✅ Slightly shrink the button */
-  background: linear-gradient(135deg, #4a00e0, #1e6efb); /* ✅ Darker shade when clicked */
+  transform: scale(0.95);
+  background: linear-gradient(135deg, #4a00e0, #1e6efb);
+} */
+
+.sellToken {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  gap: 10px;
 }
 
 ul {
   list-style-type: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
   padding: 0;
+}
+
+h2 {
+  color: #bcbcbc;
+  white-space: nowrap;
+  font-weight: bold;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 20px;
 }
 
 li {
   display: flex;
   flex-direction: column;
   padding: 12px;
-  border-bottom: 1px solid #333;
-  margin-bottom: 10px; /* ✅ Adds more spacing between token items */
-}
-.sellToken {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px; /* ✅ Adds space between Sell 50% and Sell 100% buttons */
+  transition: all 0.3s ease-in-out;
+  animation: fadeIn 0.3s forwards;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeIn 0.3s ease-in-out forwards;
+  margin: auto;
+
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow:
+    0px 0px 5px rgb(69, 0, 149),
+    inset 0px 0px 5px rgb(69, 0, 149);
 }
 
-.owned-tokens {
-  width: 280px;
-  max-width: 320px;
-  padding: 20px;
+.tokenInfo {
+  color: #bcbcbc;
+  font-size: small;
+  padding: 4px;
 }
 
-@media (max-width: 768px) {
+.value {
+  font-weight: bold;
+  color: rgb(46, 155, 0);
+}
+
+@media (max-width: 1350px) {
+  ul {
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  .tokenList {
+    width: 100%;
+  }
+}
+
+@media (max-width: 450px) {
+  .tokenInfo {
+    font-size: clamp(0.7rem, 1vw, 1rem);
+  }
+
+  .sellToken {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 900px) {
   .dashboard {
     flex-direction: column;
     align-items: center;
@@ -142,22 +203,18 @@ li {
 
   .owned-tokens {
     width: 100%;
-    max-width: 400px;
+  }
+
+  form {
+    max-width: max-content !important;
   }
 }
 
 form a {
   text-decoration: none;
-  display: block;
-  text-align: center;
-  background: linear-gradient(135deg, #1db954, #1a8743);
-  color: rgb(0, 0, 0);
-  font-size: 1rem;
-  padding: 12px;
-  border-radius: 6px;
-  font-weight: bold;
+  background-image: linear-gradient(135deg, #1a8743, #157c3b) !important;
+
   margin-top: 10px;
-  transition: all 0.2s ease-in-out;
 }
 
 form a:hover {
@@ -182,21 +239,20 @@ form a:active {
   flex-grow: 1;
 }
 
-.select select {
-  width: 100%;
-  max-width: 100%;
-}
-
-form span {
+.status {
   display: block;
-  background: rgba(244, 67, 54, 0.15); /* ✅ Subtle red background */
-  color: #f44336; /* ✅ Bright red text */
+  background: rgba(244, 67, 54, 0.15);
   font-size: 0.9rem;
   font-weight: bold;
   text-align: center;
   padding: 8px;
   border-radius: 6px;
-  margin-top: 8px; /* ✅ Adds spacing from the button */
+  margin-top: 8px;
+  transition: all 0.3s ease-in-out;
+  animation: fadeIn 0.3s forwards;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeIn 0.3s ease-in-out forwards;
 }
 
 .success,
@@ -218,6 +274,148 @@ form span {
 .trade-settings {
   display: flex;
   justify-content: space-between;
-  gap: 20px;
+  gap: 5px;
   margin-bottom: 20px;
+}
+
+/* From Uiverse.io by barisdogansutcu */
+/* From Uiverse.io by rushik0507 */
+.container {
+  margin: 0px;
+  float: right;
+  width: 3.25em;
+  transform-origin: center;
+  animation: rotate4 2s linear infinite;
+}
+
+.loader {
+  fill: none;
+  stroke: #106ee8;
+  stroke-width: 10;
+  stroke-dasharray: 2, 200;
+  stroke-dashoffset: 0;
+  stroke-linecap: round;
+  animation: dash4 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate4 {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash4 {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+
+  50% {
+    stroke-dasharray: 90, 200;
+    stroke-dashoffset: -35px;
+  }
+
+  100% {
+    stroke-dashoffset: -125px;
+  }
+}
+
+.loading {
+  border-radius: 10px;
+  border: 1px solid #333;
+  float: right;
+  color: white;
+  font-size: 12px;
+  background-color: #474747;
+}
+
+.loading:hover {
+  background-color: #333;
+}
+
+.horizon-text {
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  -webkit-background-clip: text;
+  color: transparent;
+  font-style: italic;
+  font-weight: bold;
+  text-shadow:
+    0px 0px 80px rgba(106, 17, 203, 0.5),
+    0px 0px 80px rgba(37, 117, 252, 0.5);
+  padding-right: 4px;
+  transition: 0.1s ease-in-out;
+}
+
+.max {
+  display: flex;
+  justify-content: center;
+}
+
+.horizon-text:hover {
+  opacity: 0.7;
+  transform: scale(1.03);
+}
+
+.horizon-text:active {
+  transform: scale(0.95);
+}
+
+.navbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* From Uiverse.io by StealthWorm */
+
+.bttn,
+form a {
+  justify-content: center;
+  width: 100%;
+  background-image: linear-gradient(144deg, #af40ff, #5b42f3 50%, #00ddeb);
+  border: 0;
+  border-radius: 8px;
+  color: #ffffff;
+  display: flex;
+  line-height: 1em;
+  min-width: 140px;
+  padding: 1px;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.text {
+  text-align: center;
+  background-color: #0d0c11;
+  padding: 16px 24px;
+  border-radius: 8px;
+  width: 100%;
+  height: 100%;
+  transition: 300ms;
+}
+
+.bttn:hover span,
+form a:hover span {
+  background: none;
+}
+
+.bttn:active {
+  opacity: 0.5;
+  transform: scale(0.99);
+}
+
+.load {
+  margin: 16px;
+}
+
+li img {
+  margin-bottom: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
 }

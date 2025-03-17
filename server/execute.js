@@ -46,7 +46,6 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
         const { body: quoteRes } = await undiciRequest(url, { dispatcher: agent });
 
         const quote = await quoteRes.json();
-        console.log(quote);
         if (quote.error) {
             console.error('Error getting quote:', quote.error);
             throw new Error(quote.error);
@@ -69,7 +68,6 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
             dispatcher: agent,
         });
 
-        console.log(swapRes._events)
         const { swapTransaction } = await swapRes.json();
 
         console.log('Swap transaction received, signing...');
@@ -126,14 +124,16 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
                     transactionBase64,
                     {
                         encoding: 'base64',
-                        // skipPreflight: true,
+                        skipPreflight: true,
                     },
                 ],
             }),
             dispatcher: agent,
         });
 
+
         const sendResult = await sendResponse.json();
+        console.log(sendResult);
         if (sendResult.error) {
             console.error('Error sending transaction:', sendResult.error);
             throw new Error(sendResult.error.message);
