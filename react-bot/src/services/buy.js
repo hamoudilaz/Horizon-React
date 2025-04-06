@@ -1,6 +1,7 @@
 export async function executeSwap(params) {
     try {
-        const sendReq = await fetch('http://localhost:3000/buy', {
+
+        const sendReq = await fetch(`${import.meta.env.VITE_API_URL}/buy`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

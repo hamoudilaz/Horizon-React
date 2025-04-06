@@ -5,41 +5,72 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 
-const jitoTip = 10000; // 0.00001 SOL
 
 const connection = new Connection(process.env.RPC_URL, 'processed');
 
-const wallet = Keypair.fromSecretKey(bs58.decode(process.env.PRIVATE_KEY_2));
+let wallet = null;
 
-const userPublicKey = wallet.publicKey.toBase58();
+let pubKey = null;
 
-console.log('Your PublicKey: ' + userPublicKey);
+function loadKey(key) {
+    try {
+        if (!key) throw new Error('Key is undefined or empty');
 
+        wallet = Keypair.fromSecretKey(bs58.decode(key));
+        if (!wallet) throw new Error('Failed to generate wallet');
 
+        pubKey = wallet.publicKey.toBase58();
+        console.log('Your PublicKey: ' + pubKey);
 
-
-
-async function getBalance(outputMint) {
-    const getDecimal = await fetch(
-        `https://api.jup.ag/tokens/v1/token/${outputMint}`
-    );
-
-    const { decimals = 6 } = await getDecimal.json();
-    console.log("decimalll" + decimals);
-
-    const mintAddress = new PublicKey(outputMint);
-
-    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
-        wallet.publicKey,
-        {
-            mint: mintAddress,
-        }
-    );
-
-    const amountToSell = Math.floor(
-        tokenAccounts.value[0].account.data.parsed.info.tokenAmount.uiAmount
-    );
-    return { amountToSell, decimals };
+        return pubKey;
+    } catch (error) {
+        console.error('loadKey error:', error.message);
+        return null;
+    }
 }
 
-export { wallet, jitoTip, getBalance, userPublicKey };
+
+/* function loadKey(key) {
+    try {
+        if (!key) throw new Error('Key is undefined or empty');
+
+        wallet = Keypair.fromSecretKey(bs58.decode(key));
+        if (!wallet) throw new Error('Failed to generate wallet');
+
+        pubKey = wallet.publicKey.toBase58();
+        console.log('Your PublicKey: ' + pubKey);
+
+        return pubKey;
+    } catch (error) {
+        console.error('loadKey error:', error.message);
+        return null;
+    }
+}
+
+ */
+
+async function getBalance(outputMint) {
+    try {
+        const getDecimal = await fetch(`https://api.jup.ag/tokens/v1/token/${outputMint}`);
+        const json = await getDecimal.json();
+
+        const decimals = json?.decimals ?? 6;
+
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(wallet.publicKey, {
+            mint: new PublicKey(outputMint),
+        });
+
+        if (!tokenAccounts.value?.length) throw new Error('No token account found');
+
+        const amountToSell = Math.floor(
+            tokenAccounts.value[0].account.data.parsed.info.tokenAmount.uiAmount
+        );
+
+        return { amountToSell, decimals };
+    } catch (error) {
+        console.error('getBalance error:', error.message);
+        return { amountToSell: 0, decimals: 6 };
+    }
+}
+
+export { wallet, pubKey, getBalance, loadKey };

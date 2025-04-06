@@ -1,0 +1,88 @@
+.navbar {
+  justify-content: end;
+
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 50px;
+}
+
+.logoBox {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.horizon-text:hover {
+  opacity: 0.7;
+  transform: scale(1.03);
+}
+
+.horizon-text:active {
+  transform: scale(0.95);
+}
+
+.horizon-text {
+  text-align: center;
+}
+
+.styleBox {
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0px 0px 5px rgb(69, 0, 149), inset 0px 0px 5px rgb(69, 0, 149);
+}
+
+.displayKey {
+  color: rgb(158, 158, 158);
+  font-size: clamp(0.7rem, 2vw, 0.6rem);
+}
+
+.copyBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #454545;
+  transition: all 0.1s ease-in-out;
+}
+
+.copyBox:hover {
+  background-color: #110f17;
+  color: white;
+}
+
+.copyBox label {
+  font-size: clamp(0.7rem, 2vw, 0.9rem);
+  font-weight: bold;
+  color: rgb(188, 188, 188);
+  white-space: nowrap;
+}
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 70%;
+}
+
+.LogoutBtn {
+  background: transparent;
+
+  color: white;
+  border-radius: 5px;
+
+  transition: all 0.1s ease-in-out;
+  border: 1px solid transparent;
+}
+.LogoutBtn:hover {
+  padding: 6px;
+  border-color: #c2c2c2;
+}
+
+.LogoutBtn:active {
+  transform: scale(1.05);
+  padding: 6px;
+  border-color: #c2c2c2;
+}

@@ -1,9 +1,5 @@
-import {
-    VersionedTransaction,
-    ComputeBudgetProgram,
-    PublicKey,
-} from '@solana/web3.js';
-import { wallet, jitoTip, } from './panelTest.js';
+import { VersionedTransaction, ComputeBudgetProgram, } from '@solana/web3.js';
+import { wallet, pubKey } from './panelTest.js';
 import { Agent, request as undiciRequest } from 'undici';
 import dotenv from 'dotenv';
 
@@ -34,75 +30,83 @@ const quoteApi = process.env.JUP_QUOTE;
 const swapApi = process.env.JUP_SWAP;
 const JITO_RPC = process.env.JITO_RPC;
 
-export async function swap(inputmint, outputMint, amount, destination, SlippageBps, prioFee) {
+export async function swap(inputmint, outputMint, amount, destination, SlippageBps, fee, jitoFee) {
+
     try {
 
-        console.log(inputmint, outputMint, amount, destination, SlippageBps, prioFee);
+        if (!wallet || !pubKey) throw new Error('Failed to load wallet');
+
 
         const url = `${quoteApi}?inputMint=${inputmint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${SlippageBps}&onlyDirectRoutes=true`;
 
         console.log('Requesting quote...');
 
-        const { body: quoteRes } = await undiciRequest(url, { dispatcher: agent });
 
+        const { body: quoteRes } = await undiciRequest(url, { dispatcher: agent });
         const quote = await quoteRes.json();
+
+
+
         if (quote.error) {
             console.error('Error getting quote:', quote.error);
-            throw new Error(quote.error);
+            return "Retry getting quote";
         }
 
         console.log('Quote received, requesting swap transaction...');
+
 
         const { body: swapRes } = await undiciRequest(swapApi, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                userPublicKey: wallet.publicKey.toBase58(),
-                prioritizationFeeLamports: { jitoTipLamports: jitoTip },
+                userPublicKey: pubKey,
+                prioritizationFeeLamports: { jitoTipLamports: jitoFee },
                 dynamicComputeUnitLimit: true,
                 quoteResponse: quote,
                 wrapAndUnwrapSol: false,
-                skipUserAccountsRpcCalls: true,
                 destinationTokenAccount: destination,
             }),
             dispatcher: agent,
         });
 
-        const { swapTransaction } = await swapRes.json();
+        const swap = await swapRes.json();
+        const { swapTransaction } = swap
 
-        console.log('Swap transaction received, signing...');
 
         if (!swapTransaction) {
-            throw new Error("Error getting swap transaction");
+            return "Retry getting swap transaction";
         }
 
+        console.log('Swap transaction received, signing...');
 
         let transaction = VersionedTransaction.deserialize(
             Buffer.from(swapTransaction, 'base64')
         );
 
-        let computeBudgetInstructionPrice =
+        let addPrice =
             ComputeBudgetProgram.setComputeUnitPrice({
-                microLamports: prioFee,
+                microLamports: fee,
             });
 
-        const computeBudgetCompiledInstructionPrice = {
+
+
+        const newInstruction = {
             programIdIndex: transaction.message.staticAccountKeys.findIndex(
                 (key) =>
-                    key.toBase58() === computeBudgetInstructionPrice.programId.toBase58()
+                    key.toBase58() === addPrice.programId.toBase58()
             ),
-            accountKeyIndexes: computeBudgetInstructionPrice.keys.map((key) =>
+            accountKeyIndexes: addPrice.keys.map((key) =>
                 transaction.message.staticAccountKeys.findIndex(
                     (acc) => acc.toBase58() === key.pubkey.toBase58()
                 )
             ),
-            data: new Uint8Array(computeBudgetInstructionPrice.data),
+            data: new Uint8Array(addPrice.data),
         };
 
         transaction.message.compiledInstructions.splice(
             1,
             0,
-            computeBudgetCompiledInstructionPrice
+            newInstruction
         );
 
         transaction.sign([wallet]);
@@ -112,7 +116,6 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
         );
 
 
-        // THIS IS THE LAST STEP!
         const { body: sendResponse } = await undiciRequest(JITO_RPC, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -133,7 +136,6 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
 
 
         const sendResult = await sendResponse.json();
-        console.log(sendResult);
         if (sendResult.error) {
             console.error('Error sending transaction:', sendResult.error);
             throw new Error(sendResult.error.message);

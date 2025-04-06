@@ -1,9 +1,24 @@
-export function Header() {
+import '../styles/Navbar.css';
+import { SlCopyButton } from '@shoelace-style/shoelace/dist/react';
+
+export function Header({ publicKey, logout }) {
+  const clearStorage = () => {
+    localStorage.removeItem('pubKey');
+    logout('');
+  };
   return (
     <>
       <nav className="navbar">
-        <div className="max">
+        <button className="LogoutBtn" onClick={clearStorage}>
+          Logout
+        </button>
+        <div className="logoBox">
           <h1 className="horizon-text">HORIZON</h1>
+        </div>
+        <div className="copyBox">
+          <label>Public Key:</label>
+          <h2 className="displayKey">{publicKey}</h2>
+          <SlCopyButton value={publicKey} />
         </div>
       </nav>
     </>

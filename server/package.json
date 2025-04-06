@@ -12,14 +12,22 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.0.0",
-    "@metaplex-foundation/js": "^0.20.1",
+    "@metaplex-foundation/js": "^0.19.5",
     "@metaplex-foundation/mpl-token-metadata": "^3.4.0",
     "@solana/spl-token": "^0.4.13",
     "@solana/web3.js": "^1.98.0",
+    "@supabase/supabase-js": "^2.49.4",
     "bs58": "^6.0.0",
     "dotenv": "^16.4.7",
+    "fastify": "^5.2.1",
+    "mongoose": "^8.13.2",
     "nodemon": "^3.1.9",
+    "pg": "^8.14.1",
     "undici": "^7.5.0"
+  },
+  "devDependencies": {
+    "@flydotio/dockerfile": "^0.7.10"
   }
 }

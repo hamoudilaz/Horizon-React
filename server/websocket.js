@@ -1,22 +1,25 @@
 import { TOKEN_PROGRAM_ID, AccountLayout } from '@solana/spl-token';
-import { userPublicKey as wallet_address } from './panelTest.js';
 import { Connection, PublicKey } from '@solana/web3.js';
-import { getPDA, totalOwned, tokenLogo } from './helpers/helper.js';
-import WebSocket from 'ws'; // Import WebSocket
+import { getOwnBalance, totalOwned, tokenLogo } from './helpers/helper.js';
+import WebSocket from 'ws';
 
-const wss = new WebSocket.Server({ port: 5001 });
+let wss;
 
-wss.on('connection', (ws) => {
-    console.log('Frontend WebSocket client connected');
+export function setupWebSocket(server) {
+    wss = new WebSocket.Server({ server });
 
-    ws.on('close', () => {
-        console.log('Frontend WebSocket client disconnected');
+    wss.on('connection', (ws) => {
+        console.log('Frontend WebSocket client connected');
+
+        ws.on('close', () => {
+            console.log('Frontend WebSocket client disconnected');
+        });
+
+        ws.on('message', (message) => {
+            console.log('Received from frontend:', message);
+        });
     });
-
-    ws.on('message', (message) => {
-        console.log('Received from frontend:', message);
-    });
-});
+}
 
 const connection = new Connection(process.env.RPC_URL, {
     wsEndpoint: process.env.WSS_SHYFT,
@@ -37,20 +40,20 @@ async function listenToWallets(wallet) {
                 const changedMint = AccountLayout.decode(data.accountInfo.data).mint.toBase58();
                 const amount = AccountLayout.decode(data.accountInfo.data).amount;
                 const balance = Number(amount) / 1e6;
-                console.log(balance);
-                console.log(changedMint);
+
 
                 if (changedMint === solMint) {
-                    console.log('SOL mint: ', changedMint);
+
                     ourBalance = balance.toFixed(2);
-                    console.log('SOL balance: ', ourBalance);
+
                 } else {
                     otherMint = changedMint;
-                    console.log('Other mint: ', otherMint);
                     tokenBalance = balance.toFixed(2);
-                    console.log('Token balance: ', tokenBalance);
+
                     if (tokenBalance >= 3) {
-                        const { logoURI, symbol } = await tokenLogo(otherMint);
+                        const logoData = await tokenLogo(otherMint) || {};
+                        const { logoURI = "404", symbol = "404" } = logoData;
+
                         const totalTokenValue = await totalOwned(otherMint, tokenBalance);
 
                         tokens[otherMint] = {
@@ -63,7 +66,7 @@ async function listenToWallets(wallet) {
 
                         broadcastToClients(tokens[otherMint]);
                     } else {
-                        console.log(`Token balance for ${otherMint} is less than 5. Removing the token info.`);
+                        console.log(`Token balance for ${otherMint} is less than 3. Removing the token info.`);
                         delete tokens[otherMint];
                         broadcastToClients({ tokenMint: otherMint, removed: true });
                     }
@@ -101,18 +104,110 @@ export async function refreshTokenPrices() {
     for (const mint in tokens) {
         const updatedValue = await totalOwned(mint, tokens[mint].tokenBalance);
         tokens[mint].usdValue = updatedValue;
-        console.log('Updated token value:', updatedValue);
         broadcastToClients(tokens[mint]);
     }
 }
 setInterval(refreshTokenPrices, 30000);
 
-async function start() {
-    ourBalance = (await getPDA()) * 1e6;
-    console.log('Our balance: ' + ourBalance);
-    await listenToWallets(wallet_address);
+export async function start(wallet) {
+    try {
+        ourBalance = (await getOwnBalance()) * 1e6;
+        console.log('Our balance: ' + ourBalance);
+
+        await listenToWallets(wallet);
+    } catch (error) {
+        console.error('start error:', error.message);
+    }
 }
 
-start();
+
 
 export { tokens };
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+
+
+export async function retrieveWalletStateWithTotal(wallet_address) {
+    try {
+        const filters = [
+            { dataSize: 165 },
+            { memcmp: { offset: 32, bytes: wallet_address } },
+        ];
+        const accounts = await connection.getParsedProgramAccounts(
+            new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            { filters }
+        );
+        const results = {};
+
+        // Process SPL tokens
+        accounts.forEach((account) => {
+            const parsedAccountInfo = account.account.data;
+            const mintAddress = parsedAccountInfo['parsed']['info']['mint'];
+            const tokenBalance = parsedAccountInfo['parsed']['info']['tokenAmount']['uiAmount'];
+            results[mintAddress] = {
+                balance: tokenBalance,
+                total: 0
+            };
+        });
+
+        // Add SOL balance
+        const solBalance = await connection.getBalance(new PublicKey(wallet_address));
+        const solMintAddress = 'So11111111111111111111111111111111111111112';
+        results['SOL'] = {
+            balance: solBalance / 10 ** 9,
+            total: 0
+        };
+
+        const mintsToFetch = Object.keys(results).map(mint =>
+            mint === 'SOL' ? solMintAddress : mint
+        );
+        const priceResponse = await fetch(`https://api.jup.ag/price/v2?ids=${mintsToFetch.join(',')}`);
+        const priceData = await priceResponse.json();
+
+        const transformedResults = [];
+
+        for (const mint of Object.keys(results)) {
+            const effectiveMint = mint === 'SOL' ? solMintAddress : mint;
+            const priceInfo = priceData.data[effectiveMint];
+
+
+
+            const { logoURI, symbol } = await tokenLogo(mint);
+
+
+
+            const totalTokenValue = await totalOwned(mint, results[mint].balance);
+
+
+            let token = {
+                tokenMint: mint,
+                tokenBalance: results[mint].balance,
+                usdValue: totalTokenValue,
+                logoURI: logoURI || "No logo",
+                symbol: symbol || "No logo"
+            };
+
+
+            if (priceInfo) {
+                const price = parseFloat(priceInfo.price);
+                token.total = Number((token.balance * price).toFixed(5));
+            } else {
+                token.total = null;
+            }
+
+            transformedResults.push(token);
+
+
+        }
+
+
+
+
+        broadcastToClients(transformedResults)
+        return transformedResults;
+    } catch (e) {
+        console.error('bad wallet state:', e);
+        throw e;
+    }
+}

@@ -7,6 +7,11 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+.dockerignore
+
+server/Dockerfile
+server/fly.toml
+
 # Node.js & Backend
 node_modules/
 server/node_modules/

@@ -1,5 +1,5 @@
-import { getAssociatedTokenAddress } from '@solana/spl-token';
-import { userPublicKey as wallet_address } from '../panelTest.js';
+import { getAssociatedTokenAddress, getAssociatedTokenAddressSync } from '@solana/spl-token';
+import { pubKey } from '../panelTest.js';
 import { Connection, PublicKey } from '@solana/web3.js';
 import dotenv from 'dotenv';
 
@@ -12,27 +12,29 @@ const connection = new Connection(process.env.RPC_SHYFT, {
 
 let solMint = 'So11111111111111111111111111111111111111112';
 
-// Get WSOL balance
-async function getWSOLBalance(PDA) {
-    try {
-        const balanceLamports = await connection.getTokenAccountBalance(new PublicKey(PDA));
-
-        return balanceLamports.value.uiAmount;
-    } catch (e) {
-        console.error('Error retrieving WSOL balance:', e);
-    }
-}
-
-// Get PDA
-export const getPDA = async () => {
-    const res = await getAssociatedTokenAddress(new PublicKey(solMint), new PublicKey(wallet_address));
+export const getPDA = async (wallet) => {
+    const res = await getAssociatedTokenAddress(new PublicKey(solMint), new PublicKey(wallet));
     const PDA = res.toBase58();
-
-    const balance = await getWSOLBalance(PDA);
-    return balance;
+    return PDA;
 };
 
-getPDA();
+// Get Balance
+export const getOwnBalance = async () => {
+    const res = await getAssociatedTokenAddress(new PublicKey(solMint), new PublicKey(pubKey));
+    const PDA = res.toBase58();
+
+    const balanceLamports = await connection.getTokenAccountBalance(new PublicKey(PDA));
+    return balanceLamports.value.uiAmount;
+};
+
+export function getATA(outputMint) {
+    try {
+        if (!pubKey) throw new Error('pubKey is undefined');
+        return getAssociatedTokenAddressSync(new PublicKey(outputMint), new PublicKey(pubKey));
+    } catch (error) {
+        return { error: error.message };
+    }
+}
 
 // Get total USD value
 export async function totalOwned(mint, mytokens) {
@@ -40,6 +42,8 @@ export async function totalOwned(mint, mytokens) {
         const priceResponse = await fetch(`https://api.jup.ag/price/v2?ids=${mint}`);
 
         const priceData = await priceResponse.json();
+
+        if (!priceData) throw new Error('Failed to fetch price data');
 
         const tokenPrice = parseFloat(priceData.data[mint].price);
 
@@ -54,37 +58,41 @@ export async function totalOwned(mint, mytokens) {
     }
 }
 
-export async function tokenLogo1(mint) {
-    const req = await fetch(`https://api.jup.ag/tokens/v1/token/${mint}`);
-    console.log(req);
-    const { logoURI = "Logo not found", symbol = "Symbol not found" } = await req.json();
-    console.log(logoURI, symbol);
-
-    return { logoURI, symbol };
-}
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function tokenLogo(mint) {
-    const response = await fetch(process.env.RPC_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: '1',
-            method: 'getAsset',
-            params: {
-                id: mint,
-            },
-        }),
-    });
+    try {
+        if (mint.length === 44) {
+            const response = await fetch(process.env.RPC_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    jsonrpc: '2.0',
+                    id: '1',
+                    method: 'getAsset',
+                    params: {
+                        id: mint,
+                    },
+                }),
+            });
 
-    const data = await response.json();
+            const data = await response.json();
 
-    const logoURI = data.result.content.files[0].uri;
-    const symbol = data.result.content.metadata.symbol;
+            const content = data?.result?.content;
 
-    return { logoURI, symbol };
+            if (!content || !content.files || !content.files[0]) return null;
+
+            const logoURI = content.files[0].uri;
+            const symbol = content.metadata?.symbol ?? null;
+
+            return { logoURI, symbol };
+        } else {
+            return null;
+        }
+    } catch (e) {
+        console.error('Error retrieving token logo:', e);
+        throw e;
+    }
 }
-
-

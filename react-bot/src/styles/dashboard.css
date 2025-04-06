@@ -10,25 +10,6 @@ body {
   height: 100%;
 }
 
-.dashboard {
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-start;
-
-  padding: 30px;
-  gap: 40px;
-}
-
-form {
-  max-width: 530px;
-
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow:
-    0px 0px 5px rgb(69, 0, 149),
-    inset 0px 0px 5px rgb(69, 0, 149);
-}
-
 form h2 {
   font-size: 1.5rem;
   margin-bottom: 15px;
@@ -49,10 +30,14 @@ form select {
   margin-bottom: 15px;
   background-color: transparent;
   border: 1px solid rgb(33, 19, 49);
-  color: white;
+  color: rgb(149, 149, 149);
   border-radius: 6px;
   transition: 0.3s;
   box-sizing: border-box; /* ✅ Prevents shrinking */
+}
+
+form select {
+  background-color: #0d0c11;
 }
 
 form input:focus,
@@ -76,47 +61,6 @@ form select:focus {
   padding: 20px;
 }
 
-/* .buy-btn,
-.sell-btn,
-.sell-50,
-.sell-100 {
-  -webkit-user-select: none;
-
-  width: 100%;
-  color: rgb(255, 235, 188);
-  border: none;
-  padding: 12px;
-  font-size: 1rem;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s ease-in-out;
-  font-weight: bold;
-}
-
-.sell-50,
-.sell-100 {
-  flex: 1;
-  padding: 10px;
-  text-align: center;
-}
-
-.buy-btn:hover,
-.sell-btn:hover,
-.sell-50:hover,
-.sell-100:hover {
-  opacity: 0.7;
-  background: linear-gradient(135deg, #2575fc, #6a11cb);
-  transform: scale(1.03);
-}
-
-.buy-btn:active,
-.sell-btn:active,
-.sell-50:active,
-.sell-100:active {
-  transform: scale(0.95);
-  background: linear-gradient(135deg, #4a00e0, #1e6efb);
-} */
-
 .sellToken {
   display: flex;
   justify-content: space-between;
@@ -124,7 +68,7 @@ form select:focus {
   gap: 10px;
 }
 
-ul {
+.tokenBox {
   list-style-type: none;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -132,10 +76,15 @@ ul {
   padding: 0;
 }
 
+.tokenBox:has(li:only-child) {
+  grid-template-columns: 1fr;
+}
+
 h2 {
   color: #bcbcbc;
   white-space: nowrap;
   font-weight: bold;
+  margin: 0px;
 }
 .header {
   display: flex;
@@ -145,7 +94,7 @@ h2 {
   gap: 20px;
 }
 
-li {
+.tokenList {
   display: flex;
   flex-direction: column;
   padding: 12px;
@@ -155,7 +104,6 @@ li {
   transform: translateY(10px);
   animation: fadeIn 0.3s ease-in-out forwards;
   margin: auto;
-
   padding: 25px;
   border-radius: 12px;
   box-shadow:
@@ -167,6 +115,7 @@ li {
   color: #bcbcbc;
   font-size: small;
   padding: 4px;
+  overflow-wrap: break-word;
 }
 
 .value {
@@ -192,21 +141,6 @@ li {
 
   .sellToken {
     flex-direction: column;
-  }
-}
-
-@media (max-width: 900px) {
-  .dashboard {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .owned-tokens {
-    width: 100%;
-  }
-
-  form {
-    max-width: max-content !important;
   }
 }
 
@@ -345,27 +279,6 @@ form a:active {
     0px 0px 80px rgba(37, 117, 252, 0.5);
   padding-right: 4px;
   transition: 0.1s ease-in-out;
-}
-
-.max {
-  display: flex;
-  justify-content: center;
-}
-
-.horizon-text:hover {
-  opacity: 0.7;
-  transform: scale(1.03);
-}
-
-.horizon-text:active {
-  transform: scale(0.95);
-}
-
-.navbar {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
 }
 
 /* From Uiverse.io by StealthWorm */
