@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss(),
   ],
   preview: {
-    allowedHosts: ['beneficial-illumination-production.up.railway.app']
+    host: '0.0.0.0',
+    port: 8080
   }
 })

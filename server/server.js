@@ -15,7 +15,7 @@ fastify.register(cors, {
 });
 
 let SOL = 'So11111111111111111111111111111111111111112';
-let PDA = 'D1FVpeP4uFBo9gxWD8eU6gfLDcAt6uYnQawVF71PykgF';
+let PDA
 
 fastify.post('/buy', async (request, reply) => {
     try {
@@ -35,7 +35,7 @@ fastify.post('/buy', async (request, reply) => {
         let txid = await swap(SOL, mint, amount * 1e9, ATA, slippage * 100, fee * 1e9, jitoFee * 1e9);
 
         if (typeof txid === 'string' && txid.startsWith('Retry')) {
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 5; i++) {
                 txid = await swap(SOL, mint, amount * 1e9, ATA, slippage * 100, fee * 1e9, jitoFee * 1e9);
                 if (!txid?.error) break;
             }
@@ -92,6 +92,7 @@ fastify.post('/api/loadKey', async (request, reply) => {
 
     const pubKey = loadKey(key);
     PDA = await getPDA(pubKey)
+    console.log(PDA)
     if (!pubKey) {
         return reply.status(400).send({ status: '400', error: `Invalid key` });
     }

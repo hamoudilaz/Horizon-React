@@ -31,7 +31,7 @@ const swapApi = process.env.JUP_SWAP;
 const JITO_RPC = process.env.JITO_RPC;
 
 export async function swap(inputmint, outputMint, amount, destination, SlippageBps, fee, jitoFee) {
-
+    console.log(destination)
     try {
 
         if (!wallet || !pubKey) throw new Error('Failed to load wallet');
