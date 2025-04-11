@@ -5,6 +5,8 @@ import { swap } from './execute.js';
 import { getATA, getPDA } from './helpers/helper.js';
 import { tokens, refreshTokenPrices, start, retrieveWalletStateWithTotal } from './websocket.js';
 import { setupWebSocket } from './websocket.js'; // NEW
+import { monitorTransactions } from './copy/listener.js';
+import { settings } from './copy/copy-trade.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -15,7 +17,7 @@ fastify.register(cors, {
 });
 
 let SOL = 'So11111111111111111111111111111111111111112';
-let PDA
+export let PDA
 
 fastify.post('/buy', async (request, reply) => {
     try {
@@ -88,27 +90,46 @@ fastify.get('/api/balance/', async (request, reply) => {
 });
 
 fastify.post('/api/loadKey', async (request, reply) => {
-    const { key } = request.body;
+    try {
+        const { key } = request.body;
 
-    const pubKey = loadKey(key);
-    PDA = await getPDA(pubKey)
-    console.log(PDA)
-    if (!pubKey) {
-        return reply.status(400).send({ status: '400', error: `Invalid key` });
+        const pubKey = loadKey(key);
+        if (!pubKey) {
+            return reply.status(400).send({ status: '400', error: 'Invalid key' });
+        }
+
+        PDA = await getPDA(pubKey);
+
+        await start(pubKey);
+        return reply.send({ pubKey });
+    } catch (err) {
+        console.error(err);
+        return reply.status(500).send({ status: '500', error: 'Server error' });
     }
-    await start(pubKey);
-    return reply.send({ pubKey });
 });
 
-fastify.get('/fullinfo/:wallet', async (request, reply) => {
+
+/* fastify.get('/fullinfo/:wallet', async (request, reply) => {
     const { wallet } = request.params;
 
     const data = await retrieveWalletStateWithTotal(wallet);
+}); */
+
+
+
+fastify.post('/api/copytrade', async (request, reply) => {
+    const { target } = request.body;
+    settings(request.body)
+
+    const data = await monitorTransactions(target);
+    return reply.send({ message: `Copying ${target}`, swap: data });
 });
 
-const port = 3000;
+
 
 const startServer = async () => {
+    const port = 3000;
+
     try {
         await fastify.listen({ port, host: '0.0.0.0' });
 

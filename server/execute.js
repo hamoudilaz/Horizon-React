@@ -31,13 +31,12 @@ const swapApi = process.env.JUP_SWAP;
 const JITO_RPC = process.env.JITO_RPC;
 
 export async function swap(inputmint, outputMint, amount, destination, SlippageBps, fee, jitoFee) {
-    console.log(destination)
     try {
 
         if (!wallet || !pubKey) throw new Error('Failed to load wallet');
 
 
-        const url = `${quoteApi}?inputMint=${inputmint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${SlippageBps}&onlyDirectRoutes=true`;
+        const url = `${quoteApi}?inputMint=${inputmint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${SlippageBps}`;
 
         console.log('Requesting quote...');
 

@@ -30,24 +30,6 @@ function loadKey(key) {
 }
 
 
-/* function loadKey(key) {
-    try {
-        if (!key) throw new Error('Key is undefined or empty');
-
-        wallet = Keypair.fromSecretKey(bs58.decode(key));
-        if (!wallet) throw new Error('Failed to generate wallet');
-
-        pubKey = wallet.publicKey.toBase58();
-        console.log('Your PublicKey: ' + pubKey);
-
-        return pubKey;
-    } catch (error) {
-        console.error('loadKey error:', error.message);
-        return null;
-    }
-}
-
- */
 
 async function getBalance(outputMint) {
     try {

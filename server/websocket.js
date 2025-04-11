@@ -57,11 +57,13 @@ async function listenToWallets(wallet) {
                         const totalTokenValue = await totalOwned(otherMint, tokenBalance);
 
                         tokens[otherMint] = {
+                            listToken: true,
                             tokenMint: otherMint,
                             tokenBalance,
                             usdValue: totalTokenValue,
                             logoURI,
                             symbol,
+
                         };
 
                         broadcastToClients(tokens[otherMint]);
@@ -112,7 +114,6 @@ setInterval(refreshTokenPrices, 30000);
 export async function start(wallet) {
     try {
         ourBalance = (await getOwnBalance()) * 1e6;
-        console.log('Our balance: ' + ourBalance);
 
         await listenToWallets(wallet);
     } catch (error) {
@@ -211,3 +212,5 @@ export async function retrieveWalletStateWithTotal(wallet_address) {
         throw e;
     }
 }
+
+export { wss };

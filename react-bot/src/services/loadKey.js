@@ -17,3 +17,5 @@ export async function LoadKey(key) {
 export function validateKey(key) {
     return key.length >= 86 && key.length <= 89 && /^[A-Za-z0-9]+$/.test(key);
 }
+
+

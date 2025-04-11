@@ -1,10 +1,12 @@
 import '../styles/Navbar.css';
 import { SlCopyButton } from '@shoelace-style/shoelace/dist/react';
 
-export function Header({ publicKey, logout }) {
+export function Header({ publicKey, logout, logout2 }) {
   const clearStorage = () => {
+    localStorage.removeItem('privKey');
     localStorage.removeItem('pubKey');
     logout('');
+    logout2('');
   };
   return (
     <>
