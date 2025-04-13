@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { copy } from '../services/buy.js';
 import { ClipLoader } from 'react-spinners';
 import { sellToken } from '../services/sell.js';
+import { Input, Amount, Options } from '../props/test.jsx';
 
 export function CopyTrade({ className }) {
   const [target, setTarget] = useState('');
@@ -63,14 +64,6 @@ export function CopyTrade({ className }) {
     return true;
   };
 
-  const handleTarget = (e) => {
-    const wallet = e.target.value;
-    setMess(null);
-    setError('');
-
-    setTarget(wallet);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -93,37 +86,10 @@ export function CopyTrade({ className }) {
               </p>
             ) : null}
           </div>
-          <label>Wallet adress target:</label>
+          <Input value={target} setValue={setTarget} />
+          <Amount value={amount} setValue={setAmount} />
+          <Options slip={slippage} setSlip={setSlippage} jito={jitoFee} setJito={setJitoFee} fee={fee} setFee={setFee} />
 
-          <input type="text" value={target} onChange={handleTarget} placeholder="Enter wallet to copy trade" />
-          <label>Fixed amount:</label>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => {
-              setAmount(e.target.value);
-              setError('');
-            }}
-            placeholder="Enter Amount to copy"
-          />
-          <div className="fee-option">
-            <div className="slippage">
-              <label>Slippage (%):</label>
-              <input type="number" value={slippage} onChange={(e) => setSlippage(e.target.value)} />
-            </div>
-            <div className="slippage">
-              <label>Priority fee:</label>
-              <input type="number" value={jitoFee} onChange={(e) => setJitoFee(e.target.value)} />
-            </div>
-            <div className="select">
-              <label>Base fee:</label>
-              <select value={fee} onChange={(e) => setFee(e.target.value)}>
-                <option value="0.0001">High</option>
-                <option value="0.00001">Low</option>
-                <option value="0.000001">Very low </option>
-              </select>
-            </div>
-          </div>
           <button className="buy-btn bttn buybtn" type="submit" disabled={loading}>
             {loading ? (
               <span className="text">

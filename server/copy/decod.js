@@ -60,19 +60,17 @@ export async function txid(transaction, owner) {
     }
     const type = inputMint === SOL_MINT ? "buy" : "sell"
 
-    const object = {
+    const result = await executeSwap(type, inputMint, outputMint);
+
+
+
+    return {
         type,
         inputMint,
         outputMint,
-        inputAmount: inputAmount.toString(),
-        outputAmount: outputAmount.toString()
+        inputAmount,
+        outputAmount,
+        result
     };
-
-
-    await executeSwap(type, inputMint, outputMint)
-
-
-
-    return object
 }
 

@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { LoadKey, validateKey } from '../services/loadKey';
+import { usePubKey } from '../props/usePubKey.js';
 
-export function Wallet({ setWallet, setPriv }) {
+export function Wallet() {
   const [privKey, setPrivKey] = useState('');
   const [error, setError] = useState('');
+
+  const { setPubKey } = usePubKey();
 
   const handleForm = async (e) => {
     e.preventDefault();
@@ -14,9 +17,11 @@ export function Wallet({ setWallet, setPriv }) {
     }
 
     setError('');
+    console.log(privKey);
     const { pubKey } = await LoadKey(privKey);
-    setPriv(privKey);
-    setWallet(pubKey);
+    localStorage.setItem('pubKey', pubKey);
+    localStorage.setItem('privKey', 'F1AeZxcGCKQiugokR4L5TyS7FpE9eyQegUFvHkbEJyVsenYwXckCWkF4kWeqFzqsdAHAzx5oEzkxpPFkHV29uZU');
+    setPubKey(pubKey);
     setPrivKey('');
   };
 

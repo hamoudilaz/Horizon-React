@@ -12,14 +12,13 @@ export async function executeSwap(params) {
         const data = await sendReq.json();
 
         if (data.error) {
-            console.error('Server error:', data.error);
             throw new Error(data.error);
         }
 
         return data;
     } catch (error) {
         console.error('Fetch error:', error.message);
-        return { error: error.message };
+        return { error: error.message, internal: error };
     }
 }
 

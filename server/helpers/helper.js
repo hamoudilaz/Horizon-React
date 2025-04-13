@@ -39,7 +39,7 @@ export function getATA(outputMint) {
 // Get total USD value
 export async function totalOwned(mint, mytokens) {
     try {
-        const priceResponse = await fetch(`https://api.jup.ag/price/v2?ids=${mint}`);
+        const priceResponse = await fetch(`https://lite-api.jup.ag/price/v2?ids=${mint}`);
 
         const priceData = await priceResponse.json();
 
@@ -82,11 +82,16 @@ export async function tokenLogo(mint) {
 
             const content = data?.result?.content;
 
-            if (!content || !content.files || !content.files[0]) return null;
+            if (!content || !content.files || !content.files[0]) {
+                const res = await fetch(`https://lite-api.jup.ag/tokens/v1/token/${mint}`)
+
+                const { logoURI, symbol } = await res.json()
+                if (!logoURI || !symbol) return null
+                return { logoURI, symbol }
+            }
 
             const logoURI = content.files[0].uri;
             const symbol = content.metadata?.symbol ?? null;
-
             return { logoURI, symbol };
         } else {
             return null;

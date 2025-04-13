@@ -3,10 +3,11 @@ import cors from '@fastify/cors';
 import { getBalance, loadKey } from './panelTest.js';
 import { swap } from './execute.js';
 import { getATA, getPDA } from './helpers/helper.js';
-import { tokens, refreshTokenPrices, start, retrieveWalletStateWithTotal } from './websocket.js';
+import { tokens, refreshTokenPrices, start } from './websocket.js';
 import { setupWebSocket } from './websocket.js'; // NEW
 import { monitorTransactions } from './copy/listener.js';
-import { settings } from './copy/copy-trade.js';
+import { applySettings } from './copy/helper/controller.js';
+
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -20,28 +21,23 @@ let SOL = 'So11111111111111111111111111111111111111112';
 export let PDA
 
 fastify.post('/buy', async (request, reply) => {
+    const start = Date.now();
     try {
         let { mint, amount, slippage, fee, jitoFee } = request.body;
 
         const mintATA = getATA(mint);
 
         if (mintATA.error) throw new Error(mintATA.error);
-        const ATA = mintATA.toBase58();
+        const ATA = mintATA?.toBase58();
 
         if (!mint || !amount || !slippage) {
             return reply.status(400).send({ status: '400', error: `Invalid request, ${!mint ? 'mint' : !amount ? 'amount' : 'slippage'} is missing` });
         }
 
-        const start = Date.now();
+
 
         let txid = await swap(SOL, mint, amount * 1e9, ATA, slippage * 100, fee * 1e9, jitoFee * 1e9);
 
-        if (typeof txid === 'string' && txid.startsWith('Retry')) {
-            for (let i = 0; i < 5; i++) {
-                txid = await swap(SOL, mint, amount * 1e9, ATA, slippage * 100, fee * 1e9, jitoFee * 1e9);
-                if (!txid?.error) break;
-            }
-        }
 
         if (!txid.result) {
             return reply.status(400).send({ status: '400', error: `${txid}` });
@@ -62,6 +58,8 @@ fastify.post('/sell', async (request, reply) => {
             return reply.status(400).send({ status: '400', error: `Invalid request, ${!outputMint ? 'outputMint' : !amount ? 'amount' : 'fee'} is missing` });
         }
         const { amountToSell, decimals } = await getBalance(outputMint);
+        console.log(amountToSell)
+
         const sellAmount = Math.floor((amountToSell * amount) / 100) * Math.pow(10, decimals);
         const time = Date.now();
 
@@ -101,6 +99,7 @@ fastify.post('/api/loadKey', async (request, reply) => {
         PDA = await getPDA(pubKey);
 
         await start(pubKey);
+
         return reply.send({ pubKey });
     } catch (err) {
         console.error(err);
@@ -119,7 +118,7 @@ fastify.post('/api/loadKey', async (request, reply) => {
 
 fastify.post('/api/copytrade', async (request, reply) => {
     const { target } = request.body;
-    settings(request.body)
+    applySettings(request.body)
 
     const data = await monitorTransactions(target);
     return reply.send({ message: `Copying ${target}`, swap: data });

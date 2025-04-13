@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { executeSwap } from '../services/buy.js';
 import { ClipLoader } from 'react-spinners';
 import { sellToken } from '../services/sell.js';
+import { usePubKey } from '../props/usePubKey.js';
 
 export function TradeForm({ className }) {
   const [mint, setMint] = useState('');
@@ -14,7 +15,8 @@ export function TradeForm({ className }) {
   const [mess, setMess] = useState('');
   const [timer, setTimer] = useState('');
   const [mode, setMode] = useState(true);
-  // const [isFormValid, setIsFormValid] = useState(false);
+
+  const { setPubKey } = usePubKey();
 
   const params = { mint, amount, slippage, fee, jitoFee };
 
@@ -23,6 +25,8 @@ export function TradeForm({ className }) {
     try {
       const response = await executeSwap(params);
       if (response.error) {
+        if (response.error.startsWith('Internal Server Error: pubKey is undefined')) return setPubKey(null);
+        console.log(response.error);
         setError(response.error);
       } else {
         setTimer(response.end);

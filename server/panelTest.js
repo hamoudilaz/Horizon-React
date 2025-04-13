@@ -12,6 +12,8 @@ let wallet = null;
 
 let pubKey = null;
 
+console.log(pubKey)
+
 function loadKey(key) {
     try {
         if (!key) throw new Error('Key is undefined or empty');

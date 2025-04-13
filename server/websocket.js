@@ -41,7 +41,6 @@ async function listenToWallets(wallet) {
                 const amount = AccountLayout.decode(data.accountInfo.data).amount;
                 const balance = Number(amount) / 1e6;
 
-
                 if (changedMint === solMint) {
 
                     ourBalance = balance.toFixed(2);
@@ -52,10 +51,9 @@ async function listenToWallets(wallet) {
 
                     if (tokenBalance >= 3) {
                         const logoData = await tokenLogo(otherMint) || {};
-                        const { logoURI = "404", symbol = "404" } = logoData;
+                        const { logoURI = "Not found", symbol = "Not found" } = logoData;
 
                         const totalTokenValue = await totalOwned(otherMint, tokenBalance);
-
                         tokens[otherMint] = {
                             listToken: true,
                             tokenMint: otherMint,
@@ -68,7 +66,6 @@ async function listenToWallets(wallet) {
 
                         broadcastToClients(tokens[otherMint]);
                     } else {
-                        console.log(`Token balance for ${otherMint} is less than 3. Removing the token info.`);
                         delete tokens[otherMint];
                         broadcastToClients({ tokenMint: otherMint, removed: true });
                     }

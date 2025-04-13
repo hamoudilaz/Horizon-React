@@ -1,16 +1,23 @@
 import '../styles/Navbar.css';
 import { SlCopyButton } from '@shoelace-style/shoelace/dist/react';
+import { usePubKey } from '../props/usePubKey.js';
 
-export function Header({ publicKey, logout, logout2 }) {
+export function Header() {
+  const { setPubKey } = usePubKey();
+
   const clearStorage = () => {
-    localStorage.removeItem('privKey');
     localStorage.removeItem('pubKey');
-    logout('');
-    logout2('');
+    setPubKey(null);
   };
   return (
     <>
       <nav className="navbar">
+        <div className="copyBox">
+          <label>Private Key:</label>
+
+          <SlCopyButton value={localStorage.getItem('privKey')} />
+        </div>
+
         <button className="LogoutBtn" onClick={clearStorage}>
           Logout
         </button>
@@ -19,8 +26,8 @@ export function Header({ publicKey, logout, logout2 }) {
         </div>
         <div className="copyBox">
           <label>Public Key:</label>
-          <h2 className="displayKey">{publicKey}</h2>
-          <SlCopyButton value={publicKey} />
+          <h2 className="displayKey">{localStorage.getItem('pubKey')}</h2>
+          <SlCopyButton value={localStorage.getItem('pubKey')} />
         </div>
       </nav>
     </>
