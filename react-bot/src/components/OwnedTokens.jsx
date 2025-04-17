@@ -8,6 +8,9 @@ import { sellToken } from '../services/sell.js';
 export function OwnedTokens() {
   const [tokens, setTokens] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [mess, setMess] = useState(false);
+  const [timer, setTimer] = useState(false);
+
   const [loadingStates, setLoadingStates] = useState({});
 
   const updateBalance = async () => {
@@ -61,7 +64,8 @@ export function OwnedTokens() {
 
     const sell = await sellToken(tokens[0].tokenMint, percent);
 
-    console.log(sell);
+    setMess(sell.message);
+    setTimer(sell.end);
 
     setLoadingStates((prev) => ({ ...prev, [key]: false }));
   };
@@ -81,6 +85,14 @@ export function OwnedTokens() {
           )}
         </div>
         <ul className="tokenBox">
+          {mess && (
+            <a href={mess} target="_blank" rel="noreferrer" className="sellMsg">
+              <span className="text">View on Solscan</span>
+            </a>
+          )}
+          <p style={{ textAlign: 'center' }}>
+            <strong className="timer">Total Time: {timer}</strong>
+          </p>
           {tokens.map((token) => (
             <li key={token.tokenMint} className="tokenList">
               <img src={token.logoURI ? token.logoURI : 'vite.svg'} />

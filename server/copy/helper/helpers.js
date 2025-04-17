@@ -1,21 +1,51 @@
-import { wallet, pubKey } from "../../panelTest.js";
-import { getATA } from "../../helpers/helper.js";
-import { swap } from "../copy-trade.js";
+import { TOKEN_PROGRAM_ID, AccountLayout } from '@solana/spl-token';
+import { Connection } from '@solana/web3.js';
+import { applySettings } from './controller.js';
 
-export async function executeSwap(type, inputMint, outputMint) {
+
+const connection = new Connection(process.env.RPC_URL, {
+    wsEndpoint: process.env.WSS_SHYFT,
+    commitment: 'confirmed',
+});
+
+let solMint = 'So11111111111111111111111111111111111111112';
+let otherMint;
+let ourBalance;
+let tokenBalance;
+
+export async function listenToWallets(wallet) {
     try {
-        if (type === "buy") {
-            const ata = getATA(outputMint);
-            if (ata.error) {
-                return { error: ata.error };
+        connection.onProgramAccountChange(
+            TOKEN_PROGRAM_ID,
+            async (data) => {
+                const changedMint = AccountLayout.decode(data.accountInfo.data).mint.toBase58();
+                const amount = AccountLayout.decode(data.accountInfo.data).amount;
+                const balance = Number(amount) / 1e6;
+
+                if (changedMint === solMint) {
+                    ourBalance = balance.toFixed(2);
+                } else {
+                    otherMint = changedMint;
+                    tokenBalance = balance.toFixed(2);
+                    applySettings({ sellAmount: tokenBalance * 0.9999 });
+                }
+            },
+            {
+                commitment: 'processed',
+                filters: [
+                    {
+                        dataSize: 165,
+                    },
+                    {
+                        memcmp: {
+                            offset: 32,
+                            bytes: wallet,
+                        },
+                    },
+                ],
             }
-            const dest = ata.toBase58();
-            return await swap(inputMint, outputMint, dest);
-        } else {
-            return await swap(inputMint, outputMint);
-        }
+        );
     } catch (err) {
-        console.error("❌ Swap failed:", err.message);
-        return { error: err.message };
+        console.error('Error listening to wallets:', err);
     }
 }

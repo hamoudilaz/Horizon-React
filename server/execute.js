@@ -28,9 +28,10 @@ const JITO_RPC = process.env.JITO_RPC;
 export async function swap(inputmint, outputMint, amount, destination, SlippageBps, fee, jitoFee) {
     try {
         if (!wallet || !pubKey) throw new Error('Failed to load wallet');
-
         let quote;
         for (let attempt = 1; attempt <= 5; attempt++) {
+            console.log(amount)
+
             const url = `${quoteApi}?inputMint=${inputmint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${SlippageBps}`;
 
             const start = performance.now();

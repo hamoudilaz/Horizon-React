@@ -5,7 +5,7 @@ import { swap } from './execute.js';
 import { getATA, getPDA } from './helpers/helper.js';
 import { tokens, refreshTokenPrices, start } from './websocket.js';
 import { setupWebSocket } from './websocket.js'; // NEW
-import { monitorTransactions } from './copy/listener.js';
+import { main } from './copy/index.js';
 import { applySettings } from './copy/helper/controller.js';
 
 import dotenv from 'dotenv';
@@ -58,7 +58,6 @@ fastify.post('/sell', async (request, reply) => {
             return reply.status(400).send({ status: '400', error: `Invalid request, ${!outputMint ? 'outputMint' : !amount ? 'amount' : 'fee'} is missing` });
         }
         const { amountToSell, decimals } = await getBalance(outputMint);
-        console.log(amountToSell)
 
         const sellAmount = Math.floor((amountToSell * amount) / 100) * Math.pow(10, decimals);
         const time = Date.now();
@@ -118,10 +117,11 @@ fastify.post('/api/loadKey', async (request, reply) => {
 
 fastify.post('/api/copytrade', async (request, reply) => {
     const { target } = request.body;
-    applySettings(request.body)
 
-    const data = await monitorTransactions(target);
-    return reply.send({ message: `Copying ${target}`, swap: data });
+    const data = await main(target, request.body);
+    if (data.error) return reply.send({ error: `Copying ${target} failed`, error: data.error });
+
+    return reply.send({ message: `Copying ${target}` });
 });
 
 

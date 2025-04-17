@@ -1,11 +1,13 @@
-import { executeSwap } from "./helper/helpers.js";
+import { getSettings } from "./helper/controller.js";
+import { getATA } from "./helper/controller.js";
+import { swap } from "./copy-buy.js";
 
 const SOL_MINT = "So11111111111111111111111111111111111111112";
 
-
-
 export async function txid(transaction, owner) {
-
+    // if (!transaction.meta.preTokenBalances){
+    //     return 
+    // }
 
     const preBalances = {};
     transaction.meta.preTokenBalances.forEach(token => {
@@ -60,12 +62,30 @@ export async function txid(transaction, owner) {
     }
     const type = inputMint === SOL_MINT ? "buy" : "sell"
 
-    const result = await executeSwap(type, inputMint, outputMint);
+    let result
+
+    if (!outputMint) return { error: "Skip" }
+
+    const { buyAmount, PDA, sellAmount } = getSettings()
+
+
+
+    if (inputMint === SOL_MINT) {
+        let ATA = getATA(outputMint)
+        console.log(ATA)
+        result = await swap(inputMint, outputMint, ATA, Number(buyAmount.toFixed(0)))
+    } else {
+
+        if (sellAmount < 25 * 1e6) return { skip: "skipping" }
+        result = await swap(inputMint, outputMint, PDA, Number(sellAmount.toFixed(0)))
+
+    }
+
 
 
 
     return {
-        type,
+        type: type.toUpperCase(),
         inputMint,
         outputMint,
         inputAmount,

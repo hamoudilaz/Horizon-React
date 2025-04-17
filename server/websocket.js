@@ -58,12 +58,12 @@ async function listenToWallets(wallet) {
                             listToken: true,
                             tokenMint: otherMint,
                             tokenBalance,
-                            usdValue: totalTokenValue,
+                            usdValue: totalTokenValue || NaN,
                             logoURI,
                             symbol,
 
                         };
-
+                        console.log("broadcasting..")
                         broadcastToClients(tokens[otherMint]);
                     } else {
                         delete tokens[otherMint];
@@ -126,7 +126,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 
 
-export async function retrieveWalletStateWithTotal(wallet_address) {
+/* export async function retrieveWalletStateWithTotal(wallet_address) {
     try {
         const filters = [
             { dataSize: 165 },
@@ -209,5 +209,5 @@ export async function retrieveWalletStateWithTotal(wallet_address) {
         throw e;
     }
 }
-
+ */
 export { wss };

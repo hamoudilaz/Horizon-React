@@ -1,14 +1,14 @@
-import { txid } from './decod.js';
 import dotenv from 'dotenv';
 import WebSocket from 'ws';
-dotenv.config();
+import { handleTxFast } from './index.js';
 
+dotenv.config();
 
 const TOKEN = process.env.SYNDICA_TOKEN;
 
 const wsUrl = `wss://api.syndica.io/api-token/${TOKEN}`;
 
-export async function monitorTransactions(wallet) {
+export async function syndicaStream(wallet) {
     let ws;
     let txCount = 0;
 
@@ -45,13 +45,17 @@ export async function monitorTransactions(wallet) {
                 console.log('🆗 Subscribed:', json);
             } else {
                 const tx = json.params?.result?.value;
-                const result = await txid(tx, wallet);
-                if (result) {
-                    console.log(`🛒 ${result.type.toUpperCase()} swap done:`, {
-                        input: result.inputMint,
-                        output: result.outputMint,
-                    });
-                }
+
+                await handleTxFast(tx, wallet, "Syndica")
+
+                // const result = await txid(tx, wallet);
+                // if (result.error) {
+                //     console.log("❌ Error copying wallet");
+                // } else if (result.skip) {
+                //     console.log("⏭️ Skipped:", result.skip);
+                // } else {
+                //     console.log(`\x1b[1m\x1b[32m✅ COPY ${result.type}:\x1b[0m \x1b[36mhttps://solscan.io/tx/${result.result}\x1b[0m`);
+                // }
             }
             txCount++;
         });
