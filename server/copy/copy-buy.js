@@ -1,8 +1,9 @@
-import { VersionedTransaction, ComputeBudgetProgram } from '@solana/web3.js';
+import { VersionedTransaction, ComputeBudgetProgram, PublicKey } from '@solana/web3.js';
 import { wallet, pubKey } from '../panelTest.js';
 import { performance } from 'perf_hooks';
 import { getSettings } from './helper/controller.js';
 import { Agent, request } from 'undici';
+import { jitoTipWallets, nextBlockTipWallets } from './helper/controller.js';
 
 import dotenv from 'dotenv';
 
@@ -22,30 +23,20 @@ const agent = new Agent({
     },
 });
 
+const randomWallet = nextBlockTipWallets[Math.floor(Math.random() * nextBlockTipWallets.length)];
+const nextBlockValidatorPubkey = new PublicKey(randomWallet);
 
 
 
 const quoteApi = process.env.JUP_QUOTE;
 const swapApi = process.env.JUP_SWAP;
-const JITO_RPC = process.env.JITO_RPC;
+const NEXTBLOCK = process.env.NB_URL;
+const token = process.env.NB_TOKEN;
 
 export async function swap(inputmint, outputMint, destination, amount) {
     try {
         const { SlippageBps, fee, jitoFee } = getSettings();
 
-
-        console.log("Inputmint:", inputmint)
-        console.log("outputMint:", outputMint)
-
-        console.log("destination:", destination)
-
-        console.log("amount:", amount)
-
-        console.log("SlippageBps:", SlippageBps)
-
-        console.log("fee:", fee)
-
-        console.log("jitoFee:", jitoFee)
 
         if (!wallet || !pubKey) throw new Error('Failed to load wallet');
 
@@ -106,6 +97,14 @@ export async function swap(inputmint, outputMint, destination, amount) {
 
         let transaction = VersionedTransaction.deserialize(Buffer.from(swapTransaction, 'base64'));
 
+
+        const tipIndex = transaction.message.staticAccountKeys.findIndex((key) =>
+            jitoTipWallets.includes(key.toBase58())
+        );
+
+        transaction.message.staticAccountKeys[tipIndex] = nextBlockValidatorPubkey;
+
+
         let addPrice = ComputeBudgetProgram.setComputeUnitPrice({
             microLamports: fee,
         });
@@ -122,30 +121,24 @@ export async function swap(inputmint, outputMint, destination, amount) {
 
         const transactionBase64 = Buffer.from(transaction.serialize()).toString('base64');
 
-        const { body: sendResponse } = await request(JITO_RPC, {
+        const { body: sendResponse } = await request(NEXTBLOCK, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', "Authorization": token },
             body: JSON.stringify({
-                id: 1,
-                jsonrpc: '2.0',
-                method: 'sendTransaction',
-                params: [
-                    transactionBase64,
-                    {
-                        encoding: 'base64',
-                        skipPreflight: true,
-                    },
-                ],
+                "transaction": {
+                    "content": transactionBase64
+                },
+                "frontRunningProtection": true
             }),
             dispatcher: agent,
-        });
+        })
 
         const sendResult = await sendResponse.json();
+        console.log(sendResult)
 
         if (sendResult.error) throw new Error(`Transaction error: ${sendResult.error.message}`);
-        const signature = sendResult.result;
 
-        return signature;
+        return sendResult.signature
     } catch (err) {
         console.error(`❌ Swap failed:`, err.message);
 

@@ -6,8 +6,6 @@ import { getATA, getPDA } from './helpers/helper.js';
 import { tokens, refreshTokenPrices, start } from './websocket.js';
 import { setupWebSocket } from './websocket.js'; // NEW
 import { main } from './copy/index.js';
-import { applySettings } from './copy/helper/controller.js';
-
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -107,12 +105,6 @@ fastify.post('/api/loadKey', async (request, reply) => {
 });
 
 
-/* fastify.get('/fullinfo/:wallet', async (request, reply) => {
-    const { wallet } = request.params;
-
-    const data = await retrieveWalletStateWithTotal(wallet);
-}); */
-
 
 
 fastify.post('/api/copytrade', async (request, reply) => {
@@ -121,7 +113,7 @@ fastify.post('/api/copytrade', async (request, reply) => {
     const data = await main(target, request.body);
     if (data.error) return reply.send({ error: `Copying ${target} failed`, error: data.error });
 
-    return reply.send({ message: `Copying ${target}` });
+    return reply.send({ message: `Copying ${target}`, });
 });
 
 
@@ -132,7 +124,6 @@ const startServer = async () => {
     try {
         await fastify.listen({ port, host: '0.0.0.0' });
 
-        // Attach WebSocket AFTER Fastify is ready
         const httpServer = fastify.server;
         setupWebSocket(httpServer);
 

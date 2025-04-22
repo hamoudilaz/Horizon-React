@@ -48,14 +48,6 @@ export async function syndicaStream(wallet) {
 
                 await handleTxFast(tx, wallet, "Syndica")
 
-                // const result = await txid(tx, wallet);
-                // if (result.error) {
-                //     console.log("❌ Error copying wallet");
-                // } else if (result.skip) {
-                //     console.log("⏭️ Skipped:", result.skip);
-                // } else {
-                //     console.log(`\x1b[1m\x1b[32m✅ COPY ${result.type}:\x1b[0m \x1b[36mhttps://solscan.io/tx/${result.result}\x1b[0m`);
-                // }
             }
             txCount++;
         });

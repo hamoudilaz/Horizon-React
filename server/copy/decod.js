@@ -5,9 +5,7 @@ import { swap } from "./copy-buy.js";
 const SOL_MINT = "So11111111111111111111111111111111111111112";
 
 export async function txid(transaction, owner) {
-    // if (!transaction.meta.preTokenBalances){
-    //     return 
-    // }
+    if (!transaction.meta.preTokenBalances) return null
 
     const preBalances = {};
     transaction.meta.preTokenBalances.forEach(token => {
@@ -76,7 +74,7 @@ export async function txid(transaction, owner) {
         result = await swap(inputMint, outputMint, ATA, Number(buyAmount.toFixed(0)))
     } else {
 
-        if (sellAmount < 25 * 1e6) return { skip: "skipping" }
+        if (sellAmount < 25 * 1e6 || !sellAmount) return { skip: "skipping" }
         result = await swap(inputMint, outputMint, PDA, Number(sellAmount.toFixed(0)))
 
     }

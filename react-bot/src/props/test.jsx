@@ -1,33 +1,3 @@
-/* export function Copy() {
-  return (
-    <>
-      <div className="trade-form">
-        <h2 className="trade-settings">Copy trade settings</h2>
-        <form className="styleBox wallet tradeContent" onSubmit={handleSubmit}>
-          <div className="trade-settings">
-            {mess ? (
-              <p style={{ textAlign: 'center' }}>
-                <strong className="success">Successfull!</strong>
-              </p>
-            ) : null}
-          </div>
-
-          <button className="buy-btn bttn buybtn" type="submit" disabled={loading}>
-            {loading ? (
-              <span className="text">
-                <ClipLoader size={20} color="#fff" />
-              </span>
-            ) : (
-              <span className="text">Start copy trade</span>
-            )}
-          </button>
-          {loading ? <span className="status">Loading...</span> : error && <span className="status">{error}</span>}
-        </form>
-      </div>
-    </>
-  );
-} */
-
 export function Input({ value, setValue }) {
   return (
     <>
