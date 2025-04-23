@@ -2,8 +2,8 @@ import { txid } from './decod.js';
 import { applySettings, getPDA } from './helper/controller.js';
 import { pubKey } from '../panelTest.js';
 import { listenToWallets } from './helper/helpers.js';
-import { grpcStream } from './grpc.js';
-import { syndicaStream } from './syndica.js';
+import { grpcStream, stopGrpcStream } from './grpc.js';
+import { syndicaStream, unsubscribeSyndica } from './syndica.js';
 import { listenPump } from './pump.js';
 import { handlePump } from "./helper/handlePump.js"
 
@@ -53,10 +53,17 @@ export async function main(wallet, config) {
         listenToWallets(pubKey);
         grpcStream(wallet);
         syndicaStream(wallet);
-        listenPump(wallet)
+        // listenPump(wallet)
         return { message: "Listening to wallet" }
     } catch (error) {
         console.error(error);
         return error;
     }
+}
+
+
+
+export async function stopCopy() {
+    stopGrpcStream()
+    unsubscribeSyndica()
 }

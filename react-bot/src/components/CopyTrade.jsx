@@ -4,7 +4,7 @@ import { ClipLoader } from 'react-spinners';
 import { sellToken } from '../services/sell.js';
 import { Input, Amount, Options } from '../props/test.jsx';
 
-export function CopyTrade({ className }) {
+export function CopyTrade() {
   const [target, setTarget] = useState('');
   const [amount, setAmount] = useState(0.00001);
   const [slippage, setSlippage] = useState(10);
@@ -13,12 +13,16 @@ export function CopyTrade({ className }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [mess, setMess] = useState('');
+  const [copyOn, setCopyOn] = useState(false);
 
   const params = { target, amount, slippage, fee, jitoFee };
 
   async function buy() {
+    if (copyOn) return;
+    setCopyOn(true);
     setLoading(true);
     try {
+      console.log(params);
       const response = await copy(params);
       if (response.error) {
         setError(response.error);

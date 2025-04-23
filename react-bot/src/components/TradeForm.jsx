@@ -134,8 +134,8 @@ export function TradeForm({ className }) {
             <div className="select">
               <label>Base fee:</label>
               <select value={fee} onChange={(e) => setFee(e.target.value)}>
-                <option value="0.0001">High</option>
-                <option value="0.00001">Low</option>
+                <option value="0.01">High</option>
+                <option value="0.0001">Low</option>
                 <option value="0.000001">Very low </option>
               </select>
             </div>

@@ -1,24 +1,15 @@
-import { VersionedTransaction, ComputeBudgetProgram } from '@solana/web3.js';
+import {
+    VersionedTransaction, ComputeBudgetProgram,
+} from '@solana/web3.js';
 import { wallet, pubKey } from './panelTest.js';
-import { Agent, request } from 'undici';
+import { request } from 'undici';
 import dotenv from 'dotenv';
-import { performance } from 'perf_hooks';
+import { fetchWithTimeout, fetchWithTimeoutSwap, agent } from "./helpers/fetchTimer.js"
 
 dotenv.config();
 
 // AGENT CONFIG SETTINGS
-const agent = new Agent({
-    connections: 1, // Solo user, no need for concurrency
-    keepAliveTimeout: 30_0000, // 30s idle before closing connection
-    keepAliveMaxTimeout: 3000000, // 1 hour max connection lifespan
-    connect: {
-        family: 4, // Force IPv4 directly
-        maxCachedSessions: 5, // Store TLS sessions to speed reconnects
-    },
-    headers: {
-        connection: 'keep-alive',
-    },
-});
+
 
 // API's
 const quoteApi = process.env.JUP_QUOTE;
@@ -28,26 +19,24 @@ const JITO_RPC = process.env.JITO_RPC;
 export async function swap(inputmint, outputMint, amount, destination, SlippageBps, fee, jitoFee) {
     try {
         if (!wallet || !pubKey) throw new Error('Failed to load wallet');
+
+        const url = `${quoteApi}?inputMint=${inputmint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${SlippageBps}`;
+
         let quote;
         for (let attempt = 1; attempt <= 5; attempt++) {
-            console.log(amount)
+            try {
+                console.log(`📡 Requesting quote... (Attempt ${attempt})`);
 
-            const url = `${quoteApi}?inputMint=${inputmint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${SlippageBps}`;
+                const quoteRes = await fetchWithTimeout(url, 120);
 
-            const start = performance.now();
-
-            console.log(`📡 Requesting quote... (Attempt ${attempt})`);
-            const { body: quoteRes } = await request(url, { dispatcher: agent });
-            const duration = performance.now() - start;
-
-            quote = await quoteRes.json();
-            const slow = duration > 80;
-
-            if (!quote.error && !slow) break;
-
-            console.warn(`⚠️ Quote retry ${attempt}: error=${!!quote.error}, slow=${slow}, duration=${Math.round(duration)}ms`);
+                quote = await quoteRes.json();
+                if (!quote.error) break;
+                console.log(quote.error)
+            } catch (err) {
+                console.warn(`⚠️ Quote retry ${attempt}: timeout or fetch error`);
+                // continue to next attempt automatically
+            }
         }
-
         if (quote.error) {
             console.error('Error getting quote:', quote.error);
             return quote.error;
@@ -57,31 +46,25 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
 
         let swapTransaction;
 
+
         for (let attempt = 1; attempt <= 5; attempt++) {
-            const start = performance.now();
-            const { body: swapRes } = await request(swapApi, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+            try {
+                const swapRes = await fetchWithTimeoutSwap(swapApi, 120, {
                     userPublicKey: pubKey,
                     prioritizationFeeLamports: { jitoTipLamports: jitoFee },
                     dynamicComputeUnitLimit: true,
                     quoteResponse: quote,
                     wrapAndUnwrapSol: false,
                     destinationTokenAccount: destination,
-                }),
-                dispatcher: agent,
-            });
-            const duration = performance.now() - start;
+                });
+                const swap = await swapRes.json();
+                swapTransaction = swap.swapTransaction;
 
-            const swap = await swapRes.json();
-            swapTransaction = swap.swapTransaction;
-
-            const slow = duration > 80;
-
-            if (swapTransaction && !slow) break;
-
-            console.warn(`⚠️ Swap retry ${attempt}: success=${!!swapTransaction}, slow=${slow}, duration=${Math.round(duration)}ms`);
+                if (swapTransaction) break;
+                console.warn(`⚠️ Swap retry ${attempt}: no swapTransaction`);
+            } catch (err) {
+                console.warn(`⚠️ Swap retry ${attempt}: timeout or fetch error`);
+            }
         }
 
         if (!swapTransaction) {
@@ -93,8 +76,9 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
         let transaction = VersionedTransaction.deserialize(Buffer.from(swapTransaction, 'base64'));
 
         let addPrice = ComputeBudgetProgram.setComputeUnitPrice({
-            microLamports: fee,
+            microLamports: fee
         });
+
 
         const newInstruction = {
             programIdIndex: transaction.message.staticAccountKeys.findIndex((key) => key.toBase58() === addPrice.programId.toBase58()),

@@ -7,3 +7,9 @@ export async function tokenLogo(mint) {
     const { logoURI } = await req.json()
     return logoURI
 }
+
+
+
+export async function stopCopy() {
+    await fetch(`${import.meta.env.VITE_API_URL}/api/stopcopy`)
+}

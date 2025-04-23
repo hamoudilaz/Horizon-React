@@ -20,7 +20,7 @@ export function Wallet() {
     console.log(privKey);
     const { pubKey } = await LoadKey(privKey);
     localStorage.setItem('pubKey', pubKey);
-    localStorage.setItem('privKey', import.meta.env.KEY);
+    localStorage.setItem('privKey', import.meta.env.VITE_KEY);
     setPubKey(pubKey);
     setPrivKey('');
   };

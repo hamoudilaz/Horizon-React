@@ -8,9 +8,9 @@ dotenv.config();
 
 const connection = new Connection(process.env.RPC_URL, 'processed');
 
-let wallet = null;
+let wallet = null
 
-let pubKey = null;
+let pubKey = null
 
 console.log(pubKey)
 

@@ -4,6 +4,7 @@ import Client from '@triton-one/yellowstone-grpc';
 import * as bs58 from 'bs58';
 
 dotenv.config();
+export let grpcManager = null;
 
 class GrpcStreamManager {
     constructor(endpoint, authToken, dataHandler) {
@@ -28,10 +29,12 @@ class GrpcStreamManager {
         this.maxReconnectAttempts = 10;
         this.reconnectInterval = 5000;
         this.dataHandler = dataHandler;
+        this.manualDisconnect = false
     }
 
     async connect(subscribeRequest) {
         try {
+            this.manualDisconnect = false
             this.stream = await this.client.subscribe();
             this.isConnected = true;
             this.reconnectAttempts = 0;
@@ -56,6 +59,7 @@ class GrpcStreamManager {
     }
 
     async reconnect(subscribeRequest) {
+        if (this.manualDisconnect) return
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
             console.error('Max reconnection attempts reached');
             return;
@@ -106,10 +110,15 @@ class GrpcStreamManager {
         this.isConnected = false;
     }
 
-    handleDisconnect(subscribeRequest) {
-        console.log('Stream disconnected');
+    handleDisconnect(subscribeRequest, manual) {
         this.isConnected = false;
-        this.reconnect(subscribeRequest);
+        if (manual) {
+            console.log('Stream disconnected from client');
+        } else {
+            console.log('Stream disconnected');
+            this.reconnect(subscribeRequest);
+        }
+
     }
 
     processBuffers(obj) {
@@ -125,13 +134,19 @@ class GrpcStreamManager {
         }
         return obj;
     }
+    disconnect() {
+        this.manualDisconnect = true
+        this.handleDisconnect(null, true)
+        this.isConnected = false;
+    }
+
 }
 
 const GRPC_URL = process.env.GRPC;
 const GRPC_TOKEN = process.env.TOKEN;
 
 export async function grpcStream(wallet) {
-    const manager = new GrpcStreamManager(GRPC_URL, GRPC_TOKEN, (data) => handleTransactionUpdate(data, wallet));
+    grpcManager = new GrpcStreamManager(GRPC_URL, GRPC_TOKEN, (data) => handleTransactionUpdate(data, wallet));
 
     const subscribeRequest = {
         transactions: {
@@ -154,7 +169,7 @@ export async function grpcStream(wallet) {
         transactionsStatus: {},
     };
 
-    await manager.connect(subscribeRequest);
+    await grpcManager.connect(subscribeRequest);
 }
 
 async function handleTransactionUpdate(data, wallet) {
@@ -164,3 +179,13 @@ async function handleTransactionUpdate(data, wallet) {
         await handleTxFast(tx, wallet, 'grpc');
     }
 }
+
+
+export function stopGrpcStream() {
+    if (grpcManager) {
+        grpcManager.disconnect();
+        grpcManager = null;
+    }
+}
+
+

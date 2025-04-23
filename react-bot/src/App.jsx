@@ -13,6 +13,10 @@ import './styles/ownedTokens.css';
 function App() {
   const { pubKey } = usePubKey();
 
+  const handleStop = async () => {
+    await fetch(`${import.meta.env.VITE_API_URL}/api/stopcopy`);
+  };
+
   return (
     <>
       <div className="main-container">
@@ -31,6 +35,9 @@ function App() {
             </>
           )}
         </div>
+        <button className="bttn" onClick={handleStop}>
+          <span className="text">Stop copy trade</span>
+        </button>
       </div>
     </>
   );

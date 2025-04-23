@@ -63,7 +63,6 @@ async function listenToWallets(wallet) {
                             symbol,
 
                         };
-                        console.log("broadcasting..")
                         broadcastToClients(tokens[otherMint]);
                     } else {
                         delete tokens[otherMint];
