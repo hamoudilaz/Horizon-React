@@ -3,7 +3,7 @@ import cors from '@fastify/cors';
 import { getBalance, loadKey } from './panelTest.js';
 import { swap } from './execute.js';
 import { getATA, getPDA } from './helpers/helper.js';
-import { tokens, refreshTokenPrices, start } from './websocket.js';
+import { tokens, refreshTokenPrices, start, retrieveWalletStateWithTotal } from './websocket.js';
 import { setupWebSocket } from './websocket.js';
 import { main, stopCopy } from './copy/index.js';
 import dotenv from 'dotenv';
@@ -55,10 +55,11 @@ fastify.post('/sell', async (request, reply) => {
         if (!outputMint || !amount || !fee) {
             return reply.status(400).send({ status: '400', error: `Invalid request, ${!outputMint ? 'outputMint' : !amount ? 'amount' : 'fee'} is missing` });
         }
-        const { amountToSell, decimals } = await getBalance(outputMint);
+        const amountToSell = await getBalance(outputMint);
 
-        const sellAmount = Math.floor((amountToSell * amount) / 100) * Math.pow(10, decimals);
+        const sellAmount = Math.floor((amountToSell * amount) / 100)
         const time = Date.now();
+        console.log(amountToSell)
 
         const txid = await swap(outputMint, SOL, sellAmount, PDA, 2700, fee * 1e9, jitoFee * 1e9);
 
@@ -105,21 +106,22 @@ fastify.post('/api/loadKey', async (request, reply) => {
 });
 
 
-/* fastify.get('/fullinfo/:wallet', async (request, reply) => {
+fastify.get('/fullinfo/:wallet', async (request, reply) => {
     const { wallet } = request.params;
 
     const data = await retrieveWalletStateWithTotal(wallet);
-}); */
+    // return reply.send({ message: data });
+
+});
 
 
 
 fastify.post('/api/copytrade', async (request, reply) => {
-    const { target } = request.body;
     console.log("starting copy....")
-    const data = await main(target, request.body);
-    if (data.error) return reply.send({ error: `Copying ${target} failed`, error: data.error });
+    const data = await main(request.body);
+    if (data.error) return reply.send({ error: `Copying wallet failed`, error: data.error });
 
-    return reply.send({ message: `Copying ${target}` });
+    return reply.send({ message: `Copying ${request.body.target}` });
 });
 
 
@@ -130,9 +132,15 @@ fastify.get('/api/stopcopy', async () => {
     return reply.send({ message: "copy trade stopped" });
 });
 
+fastify.get('/stop', async () => {
+    console.log("STOPPING copy....")
+
+    return reply.send({ message: "copy trade stopped" });
+});
+
 
 const startServer = async () => {
-    const port = 3000;
+    const port = 3001;
 
     try {
         await fastify.listen({ port, host: '0.0.0.0' });

@@ -11,6 +11,10 @@ dotenv.config();
 // AGENT CONFIG SETTINGS
 
 
+
+const selfquote = "http://127.0.0.1:8080/quote"
+const selfswap = "http://127.0.0.1:8080/swap"
+
 // API's
 const quoteApi = process.env.JUP_QUOTE;
 const swapApi = process.env.JUP_SWAP;
@@ -18,6 +22,13 @@ const JITO_RPC = process.env.JITO_RPC;
 
 export async function swap(inputmint, outputMint, amount, destination, SlippageBps, fee, jitoFee) {
     try {
+        console.log(inputmint)
+        console.log(outputMint)
+        console.log(amount)
+        console.log(SlippageBps)
+
+
+
         if (!wallet || !pubKey) throw new Error('Failed to load wallet');
 
         const url = `${quoteApi}?inputMint=${inputmint}&outputMint=${outputMint}&amount=${amount}&slippageBps=${SlippageBps}`;
@@ -30,6 +41,7 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
                 const quoteRes = await fetchWithTimeout(url, 120);
 
                 quote = await quoteRes.json();
+
                 if (!quote.error) break;
                 console.log(quote.error)
             } catch (err) {
@@ -55,6 +67,7 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
                     dynamicComputeUnitLimit: true,
                     quoteResponse: quote,
                     wrapAndUnwrapSol: false,
+                    // skipUserAccountsRpcCalls: true,
                     destinationTokenAccount: destination,
                 });
                 const swap = await swapRes.json();

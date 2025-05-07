@@ -35,7 +35,7 @@ export async function handleTxFast(tx, wallet, who) {
     }
 }
 
-export async function main(wallet, config) {
+export async function main(config) {
     console.log(config)
     try {
         let settings = {
@@ -49,11 +49,11 @@ export async function main(wallet, config) {
         };
 
 
-        applySettings(settings);
-        listenToWallets(pubKey);
-        grpcStream(wallet);
-        syndicaStream(wallet);
-        // listenPump(wallet)
+        // applySettings(settings);
+        // listenToWallets(pubKey);
+        // grpcStream(config.target);
+        // syndicaStream(config.target);
+        // listenPump(config.target)
         return { message: "Listening to wallet" }
     } catch (error) {
         console.error(error);

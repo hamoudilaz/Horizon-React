@@ -35,25 +35,25 @@ function loadKey(key) {
 
 async function getBalance(outputMint) {
     try {
-        const getDecimal = await fetch(`https://api.jup.ag/tokens/v1/token/${outputMint}`);
-        const json = await getDecimal.json();
+        // const getDecimal = await fetch(`https://api.jup.ag/tokens/v1/token/${outputMint}`);
+        // const json = await getDecimal.json();
 
-        const decimals = json?.decimals ?? 6;
+        // const decimals = json?.decimals ?? 6;
 
         const tokenAccounts = await connection.getParsedTokenAccountsByOwner(wallet.publicKey, {
             mint: new PublicKey(outputMint),
         });
 
-        if (!tokenAccounts.value?.length) throw new Error('No token account found');
 
+        if (!tokenAccounts.value?.length) throw new Error('No token account found');
         const amountToSell = Math.floor(
-            tokenAccounts.value[0].account.data.parsed.info.tokenAmount.uiAmount
+            Number(tokenAccounts.value[0].account.data.parsed.info.tokenAmount.amount)
         );
 
-        return { amountToSell, decimals };
+        return amountToSell
     } catch (error) {
         console.error('getBalance error:', error.message);
-        return { amountToSell: 0, decimals: 6 };
+        return amountToSell
     }
 }
 

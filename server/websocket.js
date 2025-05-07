@@ -105,7 +105,7 @@ export async function refreshTokenPrices() {
         broadcastToClients(tokens[mint]);
     }
 }
-setInterval(refreshTokenPrices, 30000);
+// setInterval(refreshTokenPrices, 30000);
 
 export async function start(wallet) {
     try {
@@ -125,78 +125,50 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 
 
-/* export async function retrieveWalletStateWithTotal(wallet_address) {
+export async function retrieveWalletStateWithTotal(wallet_address) {
     try {
-        const filters = [
-            { dataSize: 165 },
-            { memcmp: { offset: 32, bytes: wallet_address } },
-        ];
-        const accounts = await connection.getParsedProgramAccounts(
-            new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-            { filters }
-        );
-        const results = {};
 
-        // Process SPL tokens
-        accounts.forEach((account) => {
-            const parsedAccountInfo = account.account.data;
-            const mintAddress = parsedAccountInfo['parsed']['info']['mint'];
-            const tokenBalance = parsedAccountInfo['parsed']['info']['tokenAmount']['uiAmount'];
-            results[mintAddress] = {
-                balance: tokenBalance,
-                total: 0
-            };
-        });
+        const data = await fetch(`https://lite-api.jup.ag/ultra/v1/balances/${wallet_address}`);
+        const tokenAcc = await data.json()
+        console.log(tokenAcc)
 
-        // Add SOL balance
-        const solBalance = await connection.getBalance(new PublicKey(wallet_address));
-        const solMintAddress = 'So11111111111111111111111111111111111111112';
-        results['SOL'] = {
-            balance: solBalance / 10 ** 9,
-            total: 0
-        };
+        const mintsToFetch = Object.keys(tokenAcc).filter(key => key !== "SOL");
 
-        const mintsToFetch = Object.keys(results).map(mint =>
-            mint === 'SOL' ? solMintAddress : mint
-        );
         const priceResponse = await fetch(`https://api.jup.ag/price/v2?ids=${mintsToFetch.join(',')}`);
         const priceData = await priceResponse.json();
+        // console.log(priceData)
 
         const transformedResults = [];
+        // console.log(priceData)
 
-        for (const mint of Object.keys(results)) {
-            const effectiveMint = mint === 'SOL' ? solMintAddress : mint;
-            const priceInfo = priceData.data[effectiveMint];
+        for (const [key, info] of Object.entries(priceData.data)) {
+            const mint = info.id;
+            if (mint === solMint) continue;
 
+            const price = parseFloat(info.price);
 
+            const pricetotal = tokenAcc[mint].uiAmount * price;
 
-            const { logoURI, symbol } = await tokenLogo(mint);
+            const tokenInfo = await tokenLogo(mint);
 
-
-
-            const totalTokenValue = await totalOwned(mint, results[mint].balance);
+            // const totalTokenValue = await totalOwned(mint, tokenAcc[mint].uiAmount);
 
 
             let token = {
                 tokenMint: mint,
-                tokenBalance: results[mint].balance,
-                usdValue: totalTokenValue,
-                logoURI: logoURI || "No logo",
-                symbol: symbol || "No logo"
+                tokenBalance: tokenAcc[mint].uiAmount,
+                usdValue: pricetotal,
+                logoURI: tokenInfo?.logoURI || "No logo",
+                symbol: tokenInfo?.symbol || "No ticker"
             };
 
-
-            if (priceInfo) {
-                const price = parseFloat(priceInfo.price);
-                token.total = Number((token.balance * price).toFixed(5));
-            } else {
-                token.total = null;
-            }
 
             transformedResults.push(token);
 
 
         }
+
+        console.log(transformedResults)
 
 
 
@@ -208,5 +180,5 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         throw e;
     }
 }
- */
+
 export { wss };
