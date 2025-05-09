@@ -140,7 +140,7 @@ fastify.get('/stop', async () => {
 
 
 const startServer = async () => {
-    const port = 3001;
+    const port = 3000;
 
     try {
         await fastify.listen({ port, host: '0.0.0.0' });

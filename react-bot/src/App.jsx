@@ -34,11 +34,11 @@ function App() {
                 <TradeForm />
                 <OwnedTokens />
               </div>
-              <CopyTrade />
+              {/* <CopyTrade />
               <button className="bttn w-auto" onClick={handleStop}>
                 <span className="text">Stop copy trade</span>
-              </button>
-              <GetAll wallet={pubKey} />
+              </button> */}
+              {/* <GetAll wallet={pubKey} /> */}
             </>
           )}
         </div>

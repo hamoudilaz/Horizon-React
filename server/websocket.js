@@ -39,7 +39,7 @@ async function listenToWallets(wallet) {
             async (data) => {
                 const changedMint = AccountLayout.decode(data.accountInfo.data).mint.toBase58();
                 const amount = AccountLayout.decode(data.accountInfo.data).amount;
-                const balance = Number(amount) / 1e6;
+                const balance = Number(amount);
 
                 if (changedMint === solMint) {
 
@@ -47,11 +47,11 @@ async function listenToWallets(wallet) {
 
                 } else {
                     otherMint = changedMint;
-                    tokenBalance = balance.toFixed(2);
-
+                    tokenBalance = balance.toFixed(5);
                     if (tokenBalance >= 3) {
-                        const logoData = await tokenLogo(otherMint) || {};
-                        const { logoURI = "Not found", symbol = "Not found" } = logoData;
+                        const logoData = await tokenLogo(otherMint)
+                        tokenBalance = tokenBalance / (10 ** logoData.decimals);
+
 
                         const totalTokenValue = await totalOwned(otherMint, tokenBalance);
                         tokens[otherMint] = {
@@ -59,9 +59,8 @@ async function listenToWallets(wallet) {
                             tokenMint: otherMint,
                             tokenBalance,
                             usdValue: totalTokenValue || NaN,
-                            logoURI,
-                            symbol,
-
+                            logoURI: logoData?.logoURI || "No logo",
+                            symbol: logoData?.symbol || "No ticker",
                         };
                         broadcastToClients(tokens[otherMint]);
                     } else {

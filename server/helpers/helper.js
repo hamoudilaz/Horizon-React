@@ -38,6 +38,7 @@ export function getATA(outputMint) {
 
 // Get total USD value
 export async function totalOwned(mint, mytokens) {
+    console.log('mint:', mint, mytokens);
     try {
         const priceResponse = await fetch(`https://lite-api.jup.ag/price/v2?ids=${mint}`);
 
@@ -61,8 +62,9 @@ export async function totalOwned(mint, mytokens) {
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function tokenLogo(mint) {
+    if (!mint) return null;
     try {
-        if (mint.length === 44) {
+        if (mint !== solMint) {
             const response = await fetch(process.env.RPC_URL, {
                 method: 'POST',
                 headers: {
@@ -85,14 +87,16 @@ export async function tokenLogo(mint) {
             if (!content || !content.files || !content.files[0]) {
                 const res = await fetch(`https://lite-api.jup.ag/tokens/v1/token/${mint}`)
 
-                const { logoURI, symbol } = await res.json()
-                if (!logoURI || !symbol) return null
-                return { logoURI, symbol }
+                const { logoURI, symbol, decimals } = await res.json()
+                if (!logoURI || !symbol || !decimals) return null
+                return { logoURI, symbol, decimals }
             }
 
             const logoURI = content.files[0].uri;
             const symbol = content.metadata?.symbol ?? null;
-            return { logoURI, symbol };
+            const decimals = data?.result.token_info?.decimals ?? null;
+
+            return { logoURI, symbol, decimals };
         } else {
             return null;
         }

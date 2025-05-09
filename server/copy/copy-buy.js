@@ -1,6 +1,5 @@
 import { VersionedTransaction, ComputeBudgetProgram, PublicKey } from '@solana/web3.js';
 import { wallet, pubKey } from '../panelTest.js';
-import { performance } from 'perf_hooks';
 import { getSettings } from './helper/controller.js';
 import { request } from 'undici';
 import { jitoTipWallets, nextBlockTipWallets, fetchWithTimeout, fetchWithTimeoutSwap, agent } from './helper/controller.js';

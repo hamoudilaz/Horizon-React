@@ -107,7 +107,7 @@ export function TradeForm({ className }) {
             ) : null}
           </div>
           <label>Token Contract Address:</label>
-          <button type="button" className="float-end" onClick={handleMode}>
+          <button type="button" className={`float-end btn switch-mode ${mode ? 'sell' : 'buy'}`} onClick={handleMode}>
             Switch to {mode ? 'sell' : 'buy'}
           </button>
 
@@ -115,12 +115,12 @@ export function TradeForm({ className }) {
           <label>Amount:</label>
           <input
             type="number"
-            value={amount}
+            value={mode ? amount : ''}
             onChange={(e) => {
               setAmount(e.target.value);
               setError('');
             }}
-            placeholder="Enter Amount"
+            placeholder={mode ? amount + ' SOL' : '100% (Sell percentage, without %, 50, 100...)'}
           />
           <div className="fee-option">
             <div className="slippage">

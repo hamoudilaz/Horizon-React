@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Loading } from '../props/loading.jsx';
 import { ClipLoader } from 'react-spinners';
 import { sellToken } from '../services/sell.js';
+import { refreshRef } from '../services/amountRef.js';
 
 export function OwnedTokens() {
   const [tokens, setTokens] = useState([]);
@@ -37,6 +38,8 @@ export function OwnedTokens() {
     const handleMessage = async (event) => {
       const newToken = JSON.parse(event.data);
       if (newToken.listToken || newToken.removed) {
+        refreshRef.current?.(); // ✅ safe guaranteed trigger
+
         if (newToken.removed) {
           setTokens((prevTokens) => prevTokens.filter((t) => t.tokenMint !== newToken.tokenMint));
         } else {
@@ -75,6 +78,14 @@ export function OwnedTokens() {
       <div className="owned-tokens">
         <div className="header">
           <h2>{tokens.length === 0 ? 'No tokens found' : 'Owned tokens'}</h2>
+          {mess && (
+            <div>
+              <a href={mess} target="_blank" rel="noreferrer" className="sellMsg">
+                <span className="text">View on Solscan</span>
+              </a>
+              <strong className="timer">Total Time: {timer}</strong>
+            </div>
+          )}
           {tokens.length > 0 && !isLoading && null}
           {isLoading ? (
             <Loading />
@@ -85,14 +96,6 @@ export function OwnedTokens() {
           )}
         </div>
         <ul className="tokenBox">
-          {mess && (
-            <a href={mess} target="_blank" rel="noreferrer" className="sellMsg">
-              <span className="text">View on Solscan</span>
-            </a>
-          )}
-          <p style={{ textAlign: 'center' }}>
-            <strong className="timer">Total Time: {timer}</strong>
-          </p>
           {tokens.map((token) => (
             <li key={token.tokenMint} className="tokenList">
               <img src={token.logoURI ? token.logoURI : 'vite.svg'} />
@@ -101,10 +104,10 @@ export function OwnedTokens() {
                 Ticker: <span className="value">{token.symbol}</span>{' '}
               </span>
               <span className="tokenInfo">
-                Tokens: <span className="value">{Number(token.tokenBalance).toFixed(0)}</span>
+                Tokens: <span className="value">{Number(token.tokenBalance).toFixed(4)}</span>
               </span>
               <span className="tokenInfo">
-                Value: <span className="value"> {`$${token.usdValue}`}</span>
+                Value: <span className="value"> {`$${Number(token.usdValue).toFixed(4)}`}</span>
               </span>
 
               <div className="sellToken">

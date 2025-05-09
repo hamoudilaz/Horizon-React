@@ -94,3 +94,7 @@
     width: 100%;
   }
 }
+
+.sellMsg {
+  width: fit-content;
+}

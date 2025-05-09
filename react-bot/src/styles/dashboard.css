@@ -103,7 +103,6 @@ h2 {
   opacity: 0;
   transform: translateY(10px);
   animation: fadeIn 0.3s ease-in-out forwards;
-  margin: auto;
   padding: 25px;
   border-radius: 12px;
   box-shadow: 0px 0px 5px rgb(69, 0, 149), inset 0px 0px 5px rgb(69, 0, 149);
@@ -327,4 +326,12 @@ li img {
   width: 30px;
   height: 30px;
   border-radius: 50%;
+}
+
+.switch-mode.sell {
+  color: rgb(144, 4, 4);
+}
+
+.switch-mode.buy {
+  color: green;
 }

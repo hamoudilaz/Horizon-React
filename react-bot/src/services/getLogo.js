@@ -10,10 +10,18 @@ export async function stopCopy() {
 }
 
 export async function getAmount(pubkey) {
+
+    const solMint = "So11111111111111111111111111111111111111112"
     const pair = await (await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd')).json();
 
     const data = await (await fetch(`https://lite-api.jup.ag/ultra/v1/balances/${pubkey}`)).json();
-    const usdValue = (data?.SOL?.uiAmount * pair.solana.usd).toFixed(2);
-    const SOL = data?.SOL?.uiAmount.toFixed(4)
-    return { usdValue, SOL }
+    const sol = data?.SOL?.uiAmount || 0;
+    const wsol = data?.[solMint]?.uiAmount || 0;
+    const usdValue = ((sol + wsol) * pair.solana.usd).toFixed(2);
+
+    return {
+        usdValue,
+        SOL: sol.toFixed(4),
+        WSOL: wsol.toFixed(4)
+    };
 }

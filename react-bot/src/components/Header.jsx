@@ -17,13 +17,13 @@ export function Header() {
 
           <SlCopyButton value={localStorage.getItem('privKey')} />
         </div>
-
         <button className="LogoutBtn" onClick={clearStorage}>
           Logout
         </button>
         <div className="logoBox">
           <h1 className="horizon-text">HORIZON</h1>
         </div>
+
         <div className="copyBox">
           <label>Public Key:</label>
           <h2 className="displayKey">{localStorage.getItem('pubKey')}</h2>

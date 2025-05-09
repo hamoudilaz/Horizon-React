@@ -22,10 +22,6 @@ const JITO_RPC = process.env.JITO_RPC;
 
 export async function swap(inputmint, outputMint, amount, destination, SlippageBps, fee, jitoFee) {
     try {
-        console.log(inputmint)
-        console.log(outputMint)
-        console.log(amount)
-        console.log(SlippageBps)
 
 
 

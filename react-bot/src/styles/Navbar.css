@@ -86,3 +86,41 @@
   padding: 6px;
   border-color: #c2c2c2;
 }
+
+.info-box {
+  color: white;
+  padding: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.amount-container {
+  border-radius: 1rem;
+  width: fit-content;
+  display: flex;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+.label {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-right: 5px;
+}
+
+.green {
+  color: #c6c6c6;
+} /* SOL */
+.yellow {
+  color: #c6c6c6;
+} /* WSOL */
+.blue {
+  color: #c6c6c6;
+} /* USD */
+
+@media (max-width: 650px) {
+  .amount-container {
+    flex-direction: column;
+  }
+}
