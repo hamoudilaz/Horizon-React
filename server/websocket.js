@@ -50,7 +50,7 @@ async function listenToWallets(wallet) {
                     tokenBalance = balance.toFixed(5);
                     if (tokenBalance >= 3) {
                         const logoData = await tokenLogo(otherMint)
-                        tokenBalance = tokenBalance / (10 ** logoData.decimals);
+                        tokenBalance = tokenBalance / (10 ** (logoData?.decimals ?? 6));
 
 
                         const totalTokenValue = await totalOwned(otherMint, tokenBalance);
@@ -59,7 +59,7 @@ async function listenToWallets(wallet) {
                             tokenMint: otherMint,
                             tokenBalance,
                             usdValue: totalTokenValue || NaN,
-                            logoURI: logoData?.logoURI || "No logo",
+                            logoURI: logoData?.logoURI || "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
                             symbol: logoData?.symbol || "No ticker",
                         };
                         broadcastToClients(tokens[otherMint]);

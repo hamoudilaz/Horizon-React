@@ -65,7 +65,7 @@ export function OwnedTokens() {
     const key = `${token.tokenMint}-${percent}`;
     setLoadingStates((prev) => ({ ...prev, [key]: true }));
 
-    const sell = await sellToken(tokens[0].tokenMint, percent);
+    const sell = await sellToken(token.tokenMint, percent);
 
     setMess(sell.message);
     setTimer(sell.end);
@@ -78,14 +78,7 @@ export function OwnedTokens() {
       <div className="owned-tokens">
         <div className="header">
           <h2>{tokens.length === 0 ? 'No tokens found' : 'Owned tokens'}</h2>
-          {mess && (
-            <div>
-              <a href={mess} target="_blank" rel="noreferrer" className="sellMsg">
-                <span className="text">View on Solscan</span>
-              </a>
-              <strong className="timer">Total Time: {timer}</strong>
-            </div>
-          )}
+
           {tokens.length > 0 && !isLoading && null}
           {isLoading ? (
             <Loading />
@@ -95,6 +88,15 @@ export function OwnedTokens() {
             </button>
           )}
         </div>
+        {mess && (
+          <div className="mb-3">
+            <a href={mess} target="_blank" rel="noreferrer" className="sellMsg">
+              <span className="text">View on Solscan</span>
+            </a>
+            <strong className="timer">Total Time: {timer}</strong>
+          </div>
+        )}
+
         <ul className="tokenBox">
           {tokens.map((token) => (
             <li key={token.tokenMint} className="tokenList">

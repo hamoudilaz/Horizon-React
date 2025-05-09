@@ -34,6 +34,10 @@ function loadKey(key) {
 
 
 async function getBalance(outputMint) {
+    if (!wallet.publicKey) {
+        console.error('Wallet is not loaded');
+        return null;
+    }
     try {
         // const getDecimal = await fetch(`https://api.jup.ag/tokens/v1/token/${outputMint}`);
         // const json = await getDecimal.json();

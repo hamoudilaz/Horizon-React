@@ -7,6 +7,7 @@ import { tokens, refreshTokenPrices, start, retrieveWalletStateWithTotal } from 
 import { setupWebSocket } from './websocket.js';
 import { main, stopCopy } from './copy/index.js';
 import dotenv from 'dotenv';
+import { swapNoz } from './nozomi.js';
 dotenv.config();
 
 const fastify = Fastify({ logger: false });
@@ -33,8 +34,9 @@ fastify.post('/buy', async (request, reply) => {
         }
 
 
+        let txid = await swapNoz(SOL, mint, amount * 1e9, ATA, slippage * 100, fee * 1e10, jitoFee * 1e9);
 
-        let txid = await swap(SOL, mint, amount * 1e9, ATA, slippage * 100, fee * 1e10, jitoFee * 1e9);
+        // let txid = await swap(SOL, mint, amount * 1e9, ATA, slippage * 100, fee * 1e10, jitoFee * 1e9);
 
 
         if (!txid.result) {
@@ -109,7 +111,7 @@ fastify.post('/api/loadKey', async (request, reply) => {
 fastify.get('/fullinfo/:wallet', async (request, reply) => {
     const { wallet } = request.params;
 
-    const data = await retrieveWalletStateWithTotal(wallet);
+    // const data = await retrieveWalletStateWithTotal(wallet);
     // return reply.send({ message: data });
 
 });

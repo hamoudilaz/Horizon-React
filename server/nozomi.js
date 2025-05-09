@@ -1,19 +1,27 @@
 import {
-    VersionedTransaction, ComputeBudgetProgram,
+    VersionedTransaction, ComputeBudgetProgram, PublicKey
 } from '@solana/web3.js';
 import { wallet, pubKey } from './panelTest.js';
 import { request } from 'undici';
 import dotenv from 'dotenv';
 import { fetchWithTimeout, fetchWithTimeoutSwap, agent } from "./helpers/fetchTimer.js"
-
+import { nozomiTipWallets, jitoTipWallets } from './copy/helper/controller.js';
+import { sendNextblock } from './helpers/paralell.js';
 dotenv.config();
 
+// AGENT CONFIG SETTINGS
+
+
+const randomWallet = nozomiTipWallets[Math.floor(Math.random() * nozomiTipWallets.length)];
+const nozomiPubkey = new PublicKey(randomWallet);
+
+
+// API's
+const NOZ_RPC = process.env.NOZ_URL;
 const quoteApi = process.env.JUP_QUOTE;
 const swapApi = process.env.JUP_SWAP;
-const JITO_RPC = process.env.JITO_RPC;
-const NOZ_RPC = process.env.NOZ_URL;
 
-export async function swap(inputmint, outputMint, amount, destination, SlippageBps, fee, jitoFee) {
+export async function swapNoz(inputmint, outputMint, amount, destination, SlippageBps, fee, jitoFee) {
     try {
 
 
@@ -77,6 +85,14 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
 
         let transaction = VersionedTransaction.deserialize(Buffer.from(swapTransaction, 'base64'));
 
+        // sendNextblock(transaction)
+
+        const tipIndex = transaction.message.staticAccountKeys.findIndex((key) =>
+            jitoTipWallets.includes(key.toBase58())
+        );
+
+        transaction.message.staticAccountKeys[tipIndex] = nozomiPubkey;
+
         let addPrice = ComputeBudgetProgram.setComputeUnitPrice({
             microLamports: fee
         });
@@ -92,22 +108,21 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
 
         transaction.sign([wallet]);
 
-
         const transactionBase64 = Buffer.from(transaction.serialize()).toString('base64');
 
-        console.log(transactionBase64)
-        const { body: sendResponse } = await request(JITO_RPC, {
+
+
+        const { body: sendResponse } = await request(NOZ_RPC, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                id: 1,
                 jsonrpc: '2.0',
+                id: 1,
                 method: 'sendTransaction',
                 params: [
                     transactionBase64,
                     {
                         encoding: 'base64',
-                        skipPreflight: true,
                     },
                 ],
             }),
@@ -115,6 +130,9 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
         });
 
         const sendResult = await sendResponse.json();
+
+
+
         if (sendResult.error) {
             console.error('Error sending transaction:', sendResult.error);
             throw new Error(sendResult.error.message);

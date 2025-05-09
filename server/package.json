@@ -23,11 +23,14 @@
     "bs58": "^6.0.0",
     "dotenv": "^16.4.7",
     "fastify": "^5.2.1",
+    "fs": "^0.0.1-security",
     "helius-laserstream": "^0.0.5",
     "mongoose": "^8.13.2",
     "nodemon": "^3.1.9",
     "pg": "^8.14.1",
     "undici": "^7.5.0",
+    "util": "^0.12.5",
+    "websocket": "^1.0.35",
     "ws": "^8.18.2"
   },
   "devDependencies": {

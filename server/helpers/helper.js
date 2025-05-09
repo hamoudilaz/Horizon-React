@@ -44,7 +44,7 @@ export async function totalOwned(mint, mytokens) {
 
         const priceData = await priceResponse.json();
 
-        if (!priceData) throw new Error('Failed to fetch price data');
+        if (!priceData.data[mint]?.price) return null
 
         const tokenPrice = parseFloat(priceData.data[mint].price);
 
