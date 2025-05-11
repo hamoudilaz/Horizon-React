@@ -1,6 +1,5 @@
 export async function sellToken(mint, amount, node) {
 
-
     const response = await fetch(`${import.meta.env.VITE_API_URL}/sell`, {
         method: 'POST',
         headers: {

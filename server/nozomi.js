@@ -23,6 +23,10 @@ const quoteApi = process.env.JUP_QUOTE;
 const swapApi = process.env.JUP_SWAP;
 
 export async function swapNoz(inputmint, outputMint, amount, destination, SlippageBps, fee, jitoFee) {
+
+
+    const isSell = outputMint === solMint;
+
     try {
         if (inputmint !== solMint) {
             console.log("Executing Sell order for nozomi:",
@@ -69,8 +73,9 @@ export async function swapNoz(inputmint, outputMint, amount, destination, Slippa
                     dynamicComputeUnitLimit: true,
                     quoteResponse: quote,
                     wrapAndUnwrapSol: false,
-                    // skipUserAccountsRpcCalls: true,
-                    destinationTokenAccount: destination,
+                    ...(isSell && {
+                        destinationTokenAccount: destination,
+                    }),
                 });
                 const swap = await swapRes.json();
                 swapTransaction = swap.swapTransaction;

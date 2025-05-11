@@ -12,7 +12,6 @@ export function OwnedTokens() {
   const [isLoading, setIsLoading] = useState(false);
   const [mess, setMess] = useState(false);
   const [timer, setTimer] = useState(false);
-  const [node, setNode] = useState(false);
 
   const [loadingStates, setLoadingStates] = useState({});
 
@@ -63,7 +62,7 @@ export function OwnedTokens() {
     return () => ws.removeEventListener('message', handleMessage);
   }, []);
 
-  const handleSell = async (token, percent) => {
+  const handleSell = async (token, percent, node) => {
     const key = `${token.tokenMint}-${percent}`;
     setLoadingStates((prev) => ({ ...prev, [key]: true }));
 
@@ -100,33 +99,40 @@ export function OwnedTokens() {
         )}
         <ul className="tokenBox">
           {tokens.map((token) => (
-            <li key={token.tokenMint} className="tokenList">
-              <div>
-                <img src={token.logoURI ? token.logoURI : 'vite.svg'} />
-                <Switches curr={node} mode={setNode} />
-              </div>
-              <span className="tokenInfo">{token.tokenMint} </span>
-              <span className="tokenInfo">
-                Ticker: <span className="value">{token.symbol}</span>
-              </span>
-              <span className="tokenInfo">
-                Tokens: <span className="value">{Number(token.tokenBalance).toFixed(4)}</span>
-              </span>
-              <span className="tokenInfo">
-                Value: <span className="value"> {`$${Number(token.usdValue).toFixed(4)}`}</span>
-              </span>
-              <div className="sellToken">
-                <button className="bttn" value="50" onClick={() => handleSell(token, 50)} disabled={loadingStates[`${token.tokenMint}-50`]}>
-                  {loadingStates[`${token.tokenMint}-50`] ? <ClipLoader size={16} color="#fff" className="load" /> : <span className="text">Sell 50%</span>}
-                </button>
-                <button className="bttn" value="100" onClick={() => handleSell(token, 100)} disabled={loadingStates[`${token.tokenMint}-100`]}>
-                  {loadingStates[`${token.tokenMint}-100`] ? <ClipLoader size={16} color="#fff" className="load" /> : <span className="text">Sell 100%</span>}
-                </button>
-              </div>
-            </li>
+            <TokenItem key={token.tokenMint} token={token} loadingStates={loadingStates} handleSell={handleSell} />
           ))}
         </ul>
       </div>
     </>
+  );
+}
+
+function TokenItem({ token, loadingStates, handleSell }) {
+  const [node, setNode] = useState(false);
+  return (
+    <li className="tokenList">
+      <div>
+        <img src={token.logoURI ? token.logoURI : 'vite.svg'} />
+        <Switches curr={node} mode={setNode} />
+      </div>
+      <span className="tokenInfo">{token.tokenMint} </span>
+      <span className="tokenInfo">
+        Ticker: <span className="value">{token.symbol}</span>
+      </span>
+      <span className="tokenInfo">
+        Tokens: <span className="value">{Number(token.tokenBalance).toFixed(4)}</span>
+      </span>
+      <span className="tokenInfo">
+        Value: <span className="value"> {`$${Number(token.usdValue).toFixed(4)}`}</span>
+      </span>
+      <div className="sellToken">
+        <button className="bttn" value="50" onClick={() => handleSell(token, 50, node)} disabled={loadingStates[`${token.tokenMint}-50`]}>
+          {loadingStates[`${token.tokenMint}-50`] ? <ClipLoader size={16} color="#fff" className="load" /> : <span className="text">Sell 50%</span>}
+        </button>
+        <button className="bttn" value="100" onClick={() => handleSell(token, 100, node)} disabled={loadingStates[`${token.tokenMint}-100`]}>
+          {loadingStates[`${token.tokenMint}-100`] ? <ClipLoader size={16} color="#fff" className="load" /> : <span className="text">Sell 100%</span>}
+        </button>
+      </div>
+    </li>
   );
 }
