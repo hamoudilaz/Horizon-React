@@ -17,6 +17,7 @@ const solMint = 'So11111111111111111111111111111111111111112';
 export async function swap(inputmint, outputMint, amount, destination, SlippageBps, fee, jitoFee) {
     try {
 
+        const isSell = outputMint === solMint;
 
         if (!wallet || !pubKey) throw new Error('Failed to load wallet');
 
@@ -57,8 +58,9 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
                     dynamicComputeUnitLimit: true,
                     quoteResponse: quote,
                     wrapAndUnwrapSol: false,
-                    // skipUserAccountsRpcCalls: true,
-                    destinationTokenAccount: destination,
+                    ...(isSell && {
+                        destinationTokenAccount: destination,
+                    }),
                 });
 
                 if (swapRes.limit) return { error: swapRes.limit }

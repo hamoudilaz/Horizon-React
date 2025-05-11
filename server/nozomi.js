@@ -137,7 +137,7 @@ export async function swapNoz(inputmint, outputMint, amount, destination, Slippa
         });
 
         const sendResult = await sendResponse.json();
-
+        console.log(sendResult)
         if (sendResult.error) {
             console.error('Error sending transaction:', sendResult.error);
             throw new Error(sendResult.error.message);
