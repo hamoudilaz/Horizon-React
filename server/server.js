@@ -22,7 +22,7 @@ export let PDA
 fastify.post('/buy', async (request, reply) => {
     const start = Date.now();
     try {
-        let { mint, amount, slippage, fee, jitoFee } = request.body;
+        let { mint, amount, slippage, fee, jitoFee, node } = request.body;
 
         const mintATA = getATA(mint);
 
@@ -32,12 +32,14 @@ fastify.post('/buy', async (request, reply) => {
         if (!mint || !amount || !slippage) {
             return reply.status(400).send({ status: '400', error: `Invalid request, ${!mint ? 'mint' : !amount ? 'amount' : 'slippage'} is missing` });
         }
+        let execute = node ? swapNoz : swap
 
+        let txid = await execute(SOL, mint, amount * 1e9, ATA, slippage * 100, fee * 1e10, jitoFee * 1e9);
 
-        let txid = await swapNoz(SOL, mint, amount * 1e9, ATA, slippage * 100, fee * 1e10, jitoFee * 1e9);
-
-        // let txid = await swap(SOL, mint, amount * 1e9, ATA, slippage * 100, fee * 1e10, jitoFee * 1e9);
-
+        if (txid?.limit) {
+            console.log("rate limit activated on return")
+            return reply.status(429).send({ limit: true, error: `${txid?.limit}` });
+        }
 
         if (!txid.result) {
             return reply.status(400).send({ status: '400', error: `${txid}` });
@@ -52,7 +54,7 @@ fastify.post('/buy', async (request, reply) => {
 
 fastify.post('/sell', async (request, reply) => {
     try {
-        let { outputMint, amount, fee, jitoFee } = request.body;
+        let { outputMint, amount, fee, jitoFee, node } = request.body;
 
         if (!outputMint || !amount || !fee) {
             return reply.status(400).send({ status: '400', error: `Invalid request, ${!outputMint ? 'outputMint' : !amount ? 'amount' : 'fee'} is missing` });
@@ -61,11 +63,18 @@ fastify.post('/sell', async (request, reply) => {
 
         const sellAmount = Math.floor((amountToSell * amount) / 100)
         const time = Date.now();
-        console.log(amountToSell)
 
-        const txid = await swap(outputMint, SOL, sellAmount, PDA, 2700, fee * 1e9, jitoFee * 1e9);
+
+
+        let execute = node ? swapNoz : swap
+
+        const txid = await execute(outputMint, SOL, sellAmount, PDA, 2700, fee * 1e9, jitoFee * 1e9);
 
         const end = Date.now() - time;
+        if (txid.limit) {
+            return reply.status(429).send({ status: '429', error: `${txid}` });
+
+        }
 
         if (!txid.result) {
             return reply.status(400).send({ status: '400', error: `${txid}` });

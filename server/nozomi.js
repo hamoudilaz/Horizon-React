@@ -6,11 +6,12 @@ import { request } from 'undici';
 import dotenv from 'dotenv';
 import { fetchWithTimeout, fetchWithTimeoutSwap, agent } from "./helpers/fetchTimer.js"
 import { nozomiTipWallets, jitoTipWallets } from './copy/helper/controller.js';
-import { sendNextblock } from './helpers/paralell.js';
+import { sendJito } from './helpers/paralell.js';
 dotenv.config();
 
 // AGENT CONFIG SETTINGS
 
+const solMint = 'So11111111111111111111111111111111111111112';
 
 const randomWallet = nozomiTipWallets[Math.floor(Math.random() * nozomiTipWallets.length)];
 const nozomiPubkey = new PublicKey(randomWallet);
@@ -23,7 +24,11 @@ const swapApi = process.env.JUP_SWAP;
 
 export async function swapNoz(inputmint, outputMint, amount, destination, SlippageBps, fee, jitoFee) {
     try {
-
+        if (inputmint !== solMint) {
+            console.log("Executing Sell order for nozomi:",
+                fee, jitoFee
+            )
+        }
 
 
         if (!wallet || !pubKey) throw new Error('Failed to load wallet');
@@ -33,7 +38,7 @@ export async function swapNoz(inputmint, outputMint, amount, destination, Slippa
         let quote;
         for (let attempt = 1; attempt <= 5; attempt++) {
             try {
-                console.log(`📡 Requesting quote... (Attempt ${attempt})`);
+                console.log(`📡 Quote (Attempt ${attempt})`);
 
                 const quoteRes = await fetchWithTimeout(url, 120);
 
@@ -51,7 +56,7 @@ export async function swapNoz(inputmint, outputMint, amount, destination, Slippa
             return quote.error;
         }
 
-        console.log('Quote received, requesting swap transaction...');
+        console.log('Requesting swap transaction...');
 
         let swapTransaction;
 
@@ -81,21 +86,17 @@ export async function swapNoz(inputmint, outputMint, amount, destination, Slippa
             return 'Retry getting swap transaction';
         }
 
-        console.log('Swap transaction received, signing...');
+        console.log('Signing...');
 
         let transaction = VersionedTransaction.deserialize(Buffer.from(swapTransaction, 'base64'));
 
-        // sendNextblock(transaction)
 
-        const tipIndex = transaction.message.staticAccountKeys.findIndex((key) =>
-            jitoTipWallets.includes(key.toBase58())
-        );
 
-        transaction.message.staticAccountKeys[tipIndex] = nozomiPubkey;
+
 
         let addPrice = ComputeBudgetProgram.setComputeUnitPrice({
             microLamports: fee
-        });
+        })
 
 
         const newInstruction = {
@@ -106,11 +107,19 @@ export async function swapNoz(inputmint, outputMint, amount, destination, Slippa
 
         transaction.message.compiledInstructions.splice(1, 0, newInstruction);
 
+
+        const tipIndex = transaction.message.staticAccountKeys.findIndex((key) =>
+            jitoTipWallets.includes(key.toBase58())
+        );
+
+        transaction.message.staticAccountKeys[tipIndex] = nozomiPubkey;
+
         transaction.sign([wallet]);
 
         const transactionBase64 = Buffer.from(transaction.serialize()).toString('base64');
 
 
+        // sendJito(transactionBase64);
 
         const { body: sendResponse } = await request(NOZ_RPC, {
             method: 'POST',
@@ -121,9 +130,7 @@ export async function swapNoz(inputmint, outputMint, amount, destination, Slippa
                 method: 'sendTransaction',
                 params: [
                     transactionBase64,
-                    {
-                        encoding: 'base64',
-                    },
+                    { encoding: 'base64' },
                 ],
             }),
             dispatcher: agent,
@@ -131,16 +138,14 @@ export async function swapNoz(inputmint, outputMint, amount, destination, Slippa
 
         const sendResult = await sendResponse.json();
 
-
-
         if (sendResult.error) {
             console.error('Error sending transaction:', sendResult.error);
             throw new Error(sendResult.error.message);
         }
 
-        console.log(`Transaction confirmed: https://solscan.io/tx/${sendResult.result}`);
+        console.log(`NOZOMI: https://solscan.io/tx/${sendResult.result}`);
         return sendResult;
     } catch (err) {
-        return err;
+        // return err;
     }
 }

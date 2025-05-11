@@ -1,5 +1,4 @@
-export async function sellToken(mint, amount) {
-
+export async function sellToken(mint, amount, node) {
 
 
     const response = await fetch(`${import.meta.env.VITE_API_URL}/sell`, {
@@ -10,9 +9,9 @@ export async function sellToken(mint, amount) {
         body: JSON.stringify({
             outputMint: mint,
             amount: amount,
-            fee: 0.000001,
-            jitoFee: 0.000001
-
+            fee: node ? 0.0005 : 0.00001,
+            jitoFee: node ? 0.001 : 0.00001,
+            node
         })
 
     })

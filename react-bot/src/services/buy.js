@@ -1,4 +1,6 @@
 export async function executeSwap(params) {
+
+
     try {
 
         const sendReq = await fetch(`${import.meta.env.VITE_API_URL}/buy`, {
@@ -10,6 +12,16 @@ export async function executeSwap(params) {
         });
 
         const data = await sendReq.json();
+
+        if (data.limit) {
+            const retryAfter = 20;
+            return {
+                limit: true,
+                error: `Rate limit exceeded. Retry in ${retryAfter}s.`,
+                retryAfter,
+            };
+        }
+
 
         if (data.error) {
             throw new Error(data.error);
@@ -47,4 +59,21 @@ export async function copy(params) {
         console.error('Fetch error:', error.message);
         return { error: error.message };
     }
+}
+
+
+export function rateLimit(setLimit, setError, retrySeconds) {
+    setLimit(true);
+    let secondsLeft = retrySeconds;
+
+    const interval = setInterval(() => {
+        secondsLeft--;
+        setError(`Rate limit exceeded. Retry in ${secondsLeft}s.`);
+
+        if (secondsLeft <= 0) {
+            clearInterval(interval);
+            setLimit(false);
+            setError('');
+        }
+    }, 1000);
 }

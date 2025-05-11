@@ -12,10 +12,10 @@ const quoteApi = process.env.JUP_QUOTE;
 const swapApi = process.env.JUP_SWAP;
 const JITO_RPC = process.env.JITO_RPC;
 const NOZ_RPC = process.env.NOZ_URL;
+const solMint = 'So11111111111111111111111111111111111111112';
 
 export async function swap(inputmint, outputMint, amount, destination, SlippageBps, fee, jitoFee) {
     try {
-
 
 
         if (!wallet || !pubKey) throw new Error('Failed to load wallet');
@@ -28,9 +28,10 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
                 console.log(`📡 Requesting quote... (Attempt ${attempt})`);
 
                 const quoteRes = await fetchWithTimeout(url, 120);
+                if (quoteRes.limit) return { error: quoteRes.limit, limit: 429 }
 
                 quote = await quoteRes.json();
-
+                console.log(quote)
                 if (!quote.error) break;
                 console.log(quote.error)
             } catch (err) {
@@ -43,7 +44,7 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
             return quote.error;
         }
 
-        console.log('Quote received, requesting swap transaction...');
+        console.log('Requesting swap transaction...');
 
         let swapTransaction;
 
@@ -59,8 +60,13 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
                     // skipUserAccountsRpcCalls: true,
                     destinationTokenAccount: destination,
                 });
+
+                if (swapRes.limit) return { error: swapRes.limit }
+
+
                 const swap = await swapRes.json();
                 swapTransaction = swap.swapTransaction;
+                console.log(swap)
 
                 if (swapTransaction) break;
                 console.warn(`⚠️ Swap retry ${attempt}: no swapTransaction`);
@@ -73,7 +79,8 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
             return 'Retry getting swap transaction';
         }
 
-        console.log('Swap transaction received, signing...');
+        console.log('Signing...');
+
 
         let transaction = VersionedTransaction.deserialize(Buffer.from(swapTransaction, 'base64'));
 
@@ -95,7 +102,6 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
 
         const transactionBase64 = Buffer.from(transaction.serialize()).toString('base64');
 
-        console.log(transactionBase64)
         const { body: sendResponse } = await request(JITO_RPC, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -120,7 +126,7 @@ export async function swap(inputmint, outputMint, amount, destination, SlippageB
             throw new Error(sendResult.error.message);
         }
 
-        console.log(`Transaction confirmed: https://solscan.io/tx/${sendResult.result}`);
+        console.log(`JITO: https://solscan.io/tx/${sendResult.result}`);
         return sendResult;
     } catch (err) {
         return err;

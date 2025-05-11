@@ -1,3 +1,4 @@
+import { stat } from 'fs';
 import { Agent, request } from 'undici';
 
 
@@ -23,7 +24,10 @@ export async function fetchWithTimeout(url, ms) {
     }, ms);
 
     try {
-        const { body: quoteRes } = await request(url, { dispatcher: agent, signal: controller.signal });
+        const { statusCode, body: quoteRes } = await request(url, { dispatcher: agent, signal: controller.signal });
+        console.log(statusCode)
+
+        if (statusCode === 429) return { limit: "Rate limit exeeded" }
         return quoteRes;
     } finally {
         clearTimeout(timeout);
@@ -40,14 +44,14 @@ export async function fetchWithTimeoutSwap(url, ms, payload) {
     }, ms);
 
     try {
-        const { body: swapRes } = await request(url, {
+        const { statusCode, body: swapRes } = await request(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
             dispatcher: agent,
             signal: controller.signal,
         });
-
+        if (statusCode === 429) return { limit: "Rate limit exeeded" }
         return swapRes;
     } finally {
         clearTimeout(timeout);

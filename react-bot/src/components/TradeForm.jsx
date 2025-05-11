@@ -1,29 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { executeSwap } from '../services/buy.js';
 import { ClipLoader } from 'react-spinners';
 import { sellToken } from '../services/sell.js';
 import { usePubKey } from '../props/usePubKey.js';
-
+import { Switches } from '../props/loading.jsx';
+import { rateLimit } from '../services/buy.js';
 export function TradeForm({ className }) {
   const [mint, setMint] = useState('');
   const [amount, setAmount] = useState(0.00001);
   const [slippage, setSlippage] = useState(10);
   const [fee, setFee] = useState(0.000001);
-  const [jitoFee, setJitoFee] = useState(0.000001);
+  const [jitoFee, setJitoFee] = useState(0);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [mess, setMess] = useState('');
   const [timer, setTimer] = useState('');
   const [mode, setMode] = useState(true);
+  const [node, setNode] = useState(false);
+  const [limit, setlimit] = useState(false);
 
   const { setPubKey } = usePubKey();
 
-  const params = { mint, amount, slippage, fee, jitoFee };
+  const params = { mint, amount, slippage, fee, jitoFee, node };
 
   async function buy() {
     setLoading(true);
     try {
       const response = await executeSwap(params);
+      console.log(response);
+      if (response?.limit) {
+        rateLimit(setlimit, setError, response.retryAfter);
+      }
+
       if (response.error) {
         if (response.error.startsWith('Internal Server Error: pubKey is undefined')) return setPubKey(null);
         console.log(response.error);
@@ -51,6 +59,10 @@ export function TradeForm({ className }) {
     }
     if (slippage <= 0.01) {
       setError('Slippage must be greater than 0.01');
+      return false;
+    }
+    if (jitoFee > 0.01) {
+      setError('Fee can maximum be 0.01');
       return false;
     }
     setError('');
@@ -89,6 +101,13 @@ export function TradeForm({ className }) {
     setMode((prev) => !prev);
   };
 
+  useEffect(() => {
+    if (node) {
+      setJitoFee(0.001);
+    } else {
+      setJitoFee(0.000001);
+    }
+  }, [node]);
   return (
     <>
       <div className="trade-form">
@@ -110,7 +129,6 @@ export function TradeForm({ className }) {
           <button type="button" className={`float-end btn switch-mode ${mode ? 'sell' : 'buy'}`} onClick={handleMode}>
             Switch to {mode ? 'sell' : 'buy'}
           </button>
-
           <input type="text" value={mint} onChange={handleMint} placeholder="Enter Token CA" />
           <label>Amount:</label>
           <input
@@ -121,7 +139,8 @@ export function TradeForm({ className }) {
               setError('');
             }}
             placeholder={mode ? amount + ' SOL' : '100% (Sell percentage, without %, 50, 100...)'}
-          />
+          />{' '}
+          <Switches curr={node} mode={setNode} />
           <div className="fee-option">
             <div className="slippage">
               <label>Slippage (%):</label>
@@ -134,13 +153,13 @@ export function TradeForm({ className }) {
             <div className="select">
               <label>Base fee:</label>
               <select value={fee} onChange={(e) => setFee(e.target.value)}>
-                <option value="0.01">High</option>
+                <option value="0.003">High</option>
                 <option value="0.0001">Low</option>
                 <option value="0.000001">Very low </option>
               </select>
             </div>
           </div>
-          <button className="buy-btn bttn buybtn" type="submit" disabled={loading}>
+          <button className="buy-btn bttn buybtn" type="submit" disabled={loading || limit}>
             {loading ? (
               <span className="text">
                 <ClipLoader size={20} color="#fff" />

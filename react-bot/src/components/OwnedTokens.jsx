@@ -5,12 +5,14 @@ import { Loading } from '../props/loading.jsx';
 import { ClipLoader } from 'react-spinners';
 import { sellToken } from '../services/sell.js';
 import { refreshRef } from '../services/amountRef.js';
+import { Switches } from '../props/loading.jsx';
 
 export function OwnedTokens() {
   const [tokens, setTokens] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [mess, setMess] = useState(false);
   const [timer, setTimer] = useState(false);
+  const [node, setNode] = useState(false);
 
   const [loadingStates, setLoadingStates] = useState({});
 
@@ -65,7 +67,7 @@ export function OwnedTokens() {
     const key = `${token.tokenMint}-${percent}`;
     setLoadingStates((prev) => ({ ...prev, [key]: true }));
 
-    const sell = await sellToken(token.tokenMint, percent);
+    const sell = await sellToken(token.tokenMint, percent, node);
 
     setMess(sell.message);
     setTimer(sell.end);
@@ -96,14 +98,16 @@ export function OwnedTokens() {
             <strong className="timer">Total Time: {timer}</strong>
           </div>
         )}
-
         <ul className="tokenBox">
           {tokens.map((token) => (
             <li key={token.tokenMint} className="tokenList">
-              <img src={token.logoURI ? token.logoURI : 'vite.svg'} />
+              <div>
+                <img src={token.logoURI ? token.logoURI : 'vite.svg'} />
+                <Switches curr={node} mode={setNode} />
+              </div>
               <span className="tokenInfo">{token.tokenMint} </span>
               <span className="tokenInfo">
-                Ticker: <span className="value">{token.symbol}</span>{' '}
+                Ticker: <span className="value">{token.symbol}</span>
               </span>
               <span className="tokenInfo">
                 Tokens: <span className="value">{Number(token.tokenBalance).toFixed(4)}</span>
@@ -111,7 +115,6 @@ export function OwnedTokens() {
               <span className="tokenInfo">
                 Value: <span className="value"> {`$${Number(token.usdValue).toFixed(4)}`}</span>
               </span>
-
               <div className="sellToken">
                 <button className="bttn" value="50" onClick={() => handleSell(token, 50)} disabled={loadingStates[`${token.tokenMint}-50`]}>
                   {loadingStates[`${token.tokenMint}-50`] ? <ClipLoader size={16} color="#fff" className="load" /> : <span className="text">Sell 50%</span>}
